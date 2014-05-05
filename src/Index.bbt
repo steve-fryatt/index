@@ -1,0 +1,3539 @@
+REM >!RunImage
+:
+REM Index
+REM Version 1.10
+:
+debug%=TRUE
+:
+ON ERROR SYS "Hourglass_Smash" : PRINT TAB(0,0) REPORT$+" at line "+STR$(ERL) : END
+:
+SYS "XOS_GetEnv" TO state$
+:
+PROCstart_up
+:
+ON ERROR PROCerror
+:
+REPEAT
+ PROCpoll
+UNTIL quit%
+:
+PROCclose_down
+END
+:
+REM On loading, we set up a simple error handler to cover us until we have fired up our task
+REM under the Wimp.  Then we get the start up string from the Wimp, and call PROCstart_up.
+REM Now we are fired up, we can start our proper error handler, and enter the Wimp_Poll loop
+REM until the user asks to quit.  Then we call PROCclose_down, before ending.
+:
+DEF PROCpoll
+SYS "Wimp_Poll",poll_mask%,b% TO reason%
+CASE reason% OF
+ WHEN 2 : IF FNviewer_number(!b%)>-1 THEN PROCmove_icons(b%)
+          IF !b%=opt_wind% THEN PROCmove_opt_pane(b%)
+          SYS "Wimp_OpenWindow",,b%
+          :
+          REM Before we re-open the window, we must see if it is a viewer, because if it is,
+          REM the icons in it may need to be moved.  Having done this, we can simply re-open
+          REM the window as normal.
+          :
+ WHEN 3 : view%=FNviewer_number(!b%) : IF view%>-1 THEN
+           SYS "Wimp_GetPointerInfo",,q%
+           IF q%!8=1 THEN PROCopen_parent(view%,1)
+           PROCkill_viewer(view%)
+          ELSE
+           SYS "Wimp_CloseWindow",,b%
+           IF !b%=save_wind% THEN PROCrelease_slot(scan_store%) : scan_store%=-1
+          ENDIF
+          :
+          REM Before we close a window, we check to see if it is a viewer.  If it is, we must
+          REM kill the viewer, instead of simply closing it, so that all memory is released.
+          REM Before this, though, we check which button was clicked.  If it was adjust, we open
+          REM the parent viewer.  Note that PROCkill_viewer will close the window.
+          REM If the window was not a viewer, we close it as usual.  If it was the save window,
+          REM we also free up the memory that was claimed.
+          :
+ WHEN 6 : PROCmouse_click(!b%,b%!4,b%!8,b%!12,b%!16)
+ WHEN 7 : PROCget_path
+ WHEN 8 : PROCkey_press(!b%,b%!4,b%!24)
+ WHEN 9 : PROCdecode_menu
+ WHEN 17,18 : PROCrecieve(b%!16)
+ENDCASE
+:
+REM Apart from codes 2 and 3, this is a standard Wimp_Poll.  There is nothing unusual here.
+ENDPROC
+:
+:
+DEF PROCmouse_click(x%,y%,c%,w%,i%)
+CASE w% OF
+ WHEN -2
+  CASE c% OF
+   WHEN 4 : PROCstart_scan
+            IF scan_store%>-1 THEN PROCopen_at(save_wind%,x%,y%) : PROCend_caret(save_wind%,1)
+            :
+            REM Scan a disc.  If scan_store% returns with -1, then the scan failed.
+            :
+   WHEN 2 : PROCdisplay_bar_menu(ibar_menu%,5,2,x%)
+   WHEN 1 : OSCLI("%Filer_OpenDir "+search_path$)
+   ENDCASE
+ WHEN opt_wind%
+  CASE i% OF
+   WHEN 2 : PROCclose(opt_wind%) : PROCclose(opt_panes%(opt_pane%))
+   WHEN 3 : PROCstore_options(TRUE)
+   WHEN 4 : PROCstore_options(FALSE)
+   WHEN 5,6,7,8,9,10
+            PROCclose(opt_panes%(opt_pane%))
+            opt_pane%=i%-4
+            PROCopen_opt_pane(opt_pane%)
+   ENDCASE
+ WHEN opt_panes%(1)
+  CASE i% OF
+   WHEN 4,5,6,7,8,9,10,11 : PROCset_icon_state(w%,i%,1,0,0)
+   WHEN 12,13,14 : PROCset_icon_state(w%,i%,1,0,0)
+             PROCset_icon_state(w%,16,0,1,0)
+             IF FNfind_caret(w%,16) THEN PROCend_caret(w%,-1)
+   WHEN 15 : PROCset_icon_state(w%,i%,1,0,0)
+             PROCset_icon_state(w%,16,0,0,0)
+   ENDCASE
+ WHEN opt_panes%(2)
+  CASE i% OF
+   WHEN 3 : FOR loop%=0 TO 2
+             PROCset_menu_state(spr_menu%,loop%,temp_spr_file%=(loop%+1),0)
+            NEXT
+            PROCdisplay_icon_menu(spr_menu%,w%,i%)
+   ENDCASE
+ WHEN opt_panes%(4)
+  CASE i% OF
+   WHEN 17 : PROCset_icon_state(w%,10,0,1,0)
+            PROCset_icon_state(w%,11,0,1,0)
+            PROCset_icon_state(w%,12,0,0,0)
+            PROCset_icon_state(w%,13,0,0,0)
+            IF FNfind_caret(w%,11) THEN PROCend_caret(w%,13)
+   WHEN 18 : PROCset_icon_state(w%,18,1,0,0)
+            FOR loop%=2 TO 7
+             PROCset_icon_state(w%,loop%,0,1,0)
+            NEXT loop%
+            PROCset_icon_state(w%,10,0,FNicon_selected(w%,0),0)
+            PROCset_icon_state(w%,11,0,FNicon_selected(w%,0),0)
+            PROCset_icon_state(w%,12,0,FNicon_selected(w%,9),0)
+            PROCset_icon_state(w%,13,0,FNicon_selected(w%,9),0)
+            PROCset_icon_state(w%,14,0,0,0)
+            PROCset_icon_state(w%,15,0,0,0)
+            PROCset_icon_state(w%,16,0,0,0)
+            PROCset_icon_state(w%,9,FNicon_selected(w%,9),0,0)
+            PROCset_icon_state(w%,17,FNicon_selected(w%,17),0,0)
+            IF FNfind_caret(w%,3) OR FNfind_caret(w%,6) THEN PROCend_caret(w%,15)
+   WHEN 8 : PROCset_icon_state(w%,8,1,0,0)
+            FOR loop%=2 TO 7
+             PROCset_icon_state(w%,loop%,0,0,0)
+            NEXT loop%
+            PROCset_icon_state(w%,10,0,1,0)
+            PROCset_icon_state(w%,11,0,1,0)
+            PROCset_icon_state(w%,12,0,1,0)
+            PROCset_icon_state(w%,13,0,1,0)
+            PROCset_icon_state(w%,14,0,1,0)
+            PROCset_icon_state(w%,15,0,1,0)
+            PROCset_icon_state(w%,16,0,1,0)
+            PROCset_icon_state(w%,9,FNicon_selected(w%,9),1,0)
+            PROCset_icon_state(w%,17,FNicon_selected(w%,17),1,0)
+            IF FNfind_caret(w%,11) OR FNfind_caret(w%,13) OR FNfind_caret(w%,15) THEN PROCend_caret(w%,3)
+   WHEN 9 : PROCset_icon_state(w%,10,0,0,0)
+            PROCset_icon_state(w%,11,0,0,0)
+            PROCset_icon_state(w%,12,0,1,0)
+            PROCset_icon_state(w%,13,0,1,0)
+            IF FNfind_caret(w%,13) THEN PROCend_caret(w%,11)
+  ENDCASE
+ WHEN opt_panes%(6)
+  CASE i% OF
+   WHEN 2,3,4 : PROCset_icon_state(w%,i%,1,0,0)
+  ENDCASE
+ WHEN save_wind%
+  CASE i% OF
+   WHEN 0 : IF c%=64 THEN PROCdrag_box(save_wind%)
+   WHEN 2 : PROCquick_save(save_wind%)
+  ENDCASE
+ WHEN savesp_wind%
+  CASE i% OF
+   WHEN 0 : IF c%=64 THEN PROCdrag_box(savesp_wind%)
+   WHEN 2 : PROCquick_save(savesp_wind%)
+  ENDCASE
+ WHEN search_wind%
+  CASE i% OF
+   WHEN 2  : PROCset_icon_state(search_wind%,2,1,0,0)
+             PROCset_icon_state(search_wind%,3,0,0,0)
+             PROCset_icon_state(search_wind%,4,0,0,0)
+   WHEN 4  : PROCset_icon_state(search_wind%,2,0,0,0)
+             PROCset_icon_state(search_wind%,3,0,1,0)
+             PROCset_icon_state(search_wind%,4,1,0,0)
+   WHEN 11 : PROCsearch_all(search_path$)
+   WHEN 12 : PROCclose(search_wind%)
+  ENDCASE
+ WHEN progress_wind%
+  CASE c% OF
+   WHEN 1,4
+    CASE i% OF
+     WHEN 7  : abort_action%=TRUE
+     WHEN 8  : up%=FNalready_open(search_object%)
+               IF up%=-1 THEN
+                PROCopen_dir(search_object%,search_o_name$,search_p_block%,200+55*opening_cycle%,1000)
+                opening_cycle%=(opening_cycle%+1) MOD 7
+               ELSE
+                PROCopen(up%)
+               ENDIF
+     WHEN 9  : up%=FNalready_open(search_parent%)
+               IF up%=-1 THEN
+                PROCopen_dir(search_parent%,search_p_name$,search_p_block%,200+55*opening_cycle%,1000)
+                opening_cycle%=(opening_cycle%+1) MOD 7
+               ELSE
+                PROCopen(up%)
+               ENDIF
+     WHEN 10 : pause_action%=NOT pause_action%
+     WHEN 11
+      CASE action_type% OF
+       WHEN 1 : up%=FNalready_open(search_object%)
+                IF up%=-1 THEN
+                 PROCopen_dir(search_object%,search_o_name$,search_p_block%,200+55*opening_cycle%,1000)
+                 opening_cycle%=(opening_cycle%+1) MOD 7
+                ELSE
+                 PROCopen(up%)
+                ENDIF
+       WHEN 2 : pause_action%=FALSE
+      ENDCASE
+    ENDCASE
+   WHEN 2 : PROCset_options_menu : PROCdisplay_menu(opts_menu%,x%,y%)
+  ENDCASE
+ OTHERWISE
+  CASE c% OF
+   WHEN 4 : PROCnew_viewer(w%,i%,4)
+            IF i%=-1 THEN
+             view%=FNviewer_number(w%)
+             IF view%>-1 THEN menuup%=-1 : PROCclear_all(view%,FALSE)
+            ENDIF
+            :
+            REM If it was not an icon, we deselect all icons in the window.
+            :
+   WHEN 2 : view%=FNviewer_number(w%)
+            IF view%>-1 THEN PROCset_main_menu(view%,i%) : PROCdisplay_menu(main_menu%,x%,y%)
+   WHEN 1 : PROCnew_viewer(w%,i%,1)
+            view%=FNviewer_number(w%) : IF view%>-1 AND i%>-1 THEN PROCkill_viewer(view%)
+   ENDCASE
+ ENDCASE
+:
+REM Unless the window handle is otherwise known, it is assumed to be a viewer.  Then we do the
+REM usual checks.
+ENDPROC
+:
+:
+DEF PROCkey_press(w%,i%,k%)
+CASE k% OF
+ WHEN 13
+  CASE w% OF
+   WHEN save_wind%,savesp_wind% : PROCquick_save(w%)
+   WHEN search_wind% : PROCsearch_all(search_path$)
+   WHEN opt_wind% : PROCstore_options(FALSE)
+  ENDCASE
+ OTHERWISE
+ SYS "Wimp_ProcessKey",k%
+ENDCASE
+:
+REM We provide no hotkeys, and so simply trap the pressing of RETURN.
+ENDPROC
+:
+:
+DEF PROCrecieve(action%)
+CASE action% OF
+ WHEN &0     : quit%=TRUE : abort_action%=TRUE : pause_action%=FALSE
+             :
+               REM Note that we must also abort any filer action operations, otherwise we won't
+               REM quit until they finish.
+             :
+ WHEN &2
+  CASE dragged_from% OF
+   WHEN save_wind%
+               $FNindirection(save_wind%,1)=FNstring(b%+44) : PROCsave(scan_store%)
+               PROCrelease_slot(scan_store%) : scan_store%=-1
+             :
+               REM Remember to release the compilation area after saving!
+             :
+   WHEN savesp_wind%
+               $FNindirection(savesp_wind%,1)=FNstring(b%+44) : PROCsave_sp(viewer_up%)
+  ENDCASE
+ WHEN &3     : IF b%!20=-2 THEN PROCload_index
+             : IF b%!20=opt_panes%(5) AND b%!24=1 THEN PROCset_search_path
+             :
+               REM If dragged to the icon bar, try to load an index.  If dragged to icon 39 of
+               REM the opt window, try to set the search path.
+             :
+ WHEN &5     : PROCload_index
+ WHEN &A     : PROCsave_desktop_boot(b%!20)
+ WHEN &502   : PROChelp(b%!32,b%!36)
+ WHEN &400C0 : PROCsub_menu(b%!20,b%!24,b%!28,b%!32,b%!36,b%!40)
+ WHEN &400C1 : PROCget_size
+ WHEN &400C9 : menuup%=-1
+ ENDCASE
+:
+REM We recieve the usual range of Wimp messages.
+ENDPROC
+:
+:
+DEF PROCsub_menu(w%,x%,y%,s1%,s2%,s3%)
+LOCAL fix%
+fix%=FALSE
+CASE menuup% OF
+ WHEN ibar_menu%
+  CASE s1% OF
+   WHEN 1 : PROCstart_scan : fix%=TRUE
+  ENDCASE
+ENDCASE
+IF fix% THEN
+ IF scan_store%>-1 THEN PROCopen_at(w%,x%+2,y%) : PROCend_caret(save_wind%,1)
+ELSE
+ SYS "Wimp_CreateSubMenu",,w%,x%,y%
+ENDIF
+:
+REM This deals with sub-menu opening requests.  We only have one at the moment, from the
+REM 'Index disc' option, but we overkill in case we ever need any more...  Note the contrivance
+REM to make the save window stay on screen.  It's not totally RiscOs compliant, but...
+ENDPROC
+:
+:
+DEF PROCdecode_menu
+s1%=!b% : s2%=b%!4 : s3%=b%!8 : s4%=b%!12
+SYS "Wimp_GetPointerInfo",,b%
+re_open%=(b%!8=1)
+CASE menuup% OF
+ WHEN ibar_menu%
+  CASE s1% OF
+   WHEN 1
+    CASE s2% OF
+     WHEN 0 : IF s3%>-1 THEN PROCmenu_open_root(s3%)
+     WHEN 1 : IF s3%>-1 THEN PROCmenu_kill_index(s3%)
+     WHEN 2 : PROCmenu_kill_all
+    ENDCASE
+   WHEN 2 : PROCset_icon_state(search_wind%,2,1,0,0)
+            PROCset_icon_state(search_wind%,3,0,0,0)
+            PROCset_icon_state(search_wind%,4,0,0,0)
+            PROCset_icon_state(search_wind%,6,search_for_dirs%,0,0)
+            PROCset_icon_state(search_wind%,7,search_for_apps%,0,0)
+            PROCset_icon_state(search_wind%,8,search_in_apps%,0,0)
+            PROCset_icon_state(search_wind%,10,search_for_files%,0,0)
+            $FNindirection(search_wind%,1)=""
+            $FNindirection(search_wind%,3)=""
+            PROCopen(search_wind%)
+            PROCend_caret(search_wind%,1)
+   WHEN 3 : PROCopen_opts
+   WHEN 4 : quit%=TRUE : abort_action%=TRUE : pause_action%=FALSE
+   ENDCASE
+ WHEN main_menu%
+  CASE s1% OF
+   WHEN 0 : PROCdisplay_type(s2%,viewer_up%)
+   WHEN 1
+    CASE s2% OF
+     WHEN 4 : PROCstart_local_count(viewer_up%)
+     WHEN 7 : IF s3%=0 THEN PROCstart_local_search(viewer_up%)
+    ENDCASE
+   WHEN 2 : PROCselect_all(viewer_up%,re_open%)
+   WHEN 3 : PROCclear_all(viewer_up%,re_open%)
+   WHEN 4
+    CASE s2% OF
+     WHEN 1
+      global_verbose%=NOT global_verbose%
+      verbose_action%=global_verbose%
+      IF filer_action% THEN
+       IF NOT pause_action% THEN
+        IF verbose_action% PROCopen(progress_wind%) ELSE PROCclose(progress_wind%)
+       ELSE
+        IF action_type%=2 THEN close_action%=NOT verbose_action%
+       ENDIF
+      ENDIF
+    ENDCASE
+    PROCset_options_menu
+   WHEN 6 : PROCopen_parent(viewer_up%,4)
+  ENDCASE
+ WHEN opts_menu%
+  CASE s1% OF
+   WHEN 0
+    faster_action%=NOT faster_action%
+    IF faster_action% AND (NOT pause_action%) THEN
+     $FNindirection(progress_wind%,2)=""
+     $FNindirection(progress_wind%,3)="-"
+     $FNindirection(progress_wind%,4)="-"
+     $FNindirection(progress_wind%,15)=""
+     PROCforce_icon_redraw(progress_wind%,2)
+     PROCforce_icon_redraw(progress_wind%,3)
+     PROCforce_icon_redraw(progress_wind%,4)
+     PROCforce_icon_redraw(progress_wind%,15)
+     PROCpoll
+    ENDIF
+   WHEN 2
+    verbose_action%=NOT verbose_action%
+    IF NOT pause_action% THEN
+     IF verbose_action% PROCopen(progress_wind%) ELSE PROCclose(progress_wind%)
+    ELSE
+     IF action_type%=2 THEN close_action%=NOT verbose_action%
+    ENDIF
+  ENDCASE
+  PROCset_options_menu
+  WHEN spr_menu%
+   IF s1%>-1 THEN
+    temp_spr_file%=s1%+1
+    $FNindirection(opt_panes%(2),4)=FNtoken("Sp"+STR$(temp_spr_file%))
+    PROCforce_icon_redraw(opt_panes%(2),4)
+    FOR loop%=0 TO 2
+     PROCset_menu_state(spr_menu%,loop%,temp_spr_file%=(loop%+1),0)
+    NEXT
+   ENDIF
+ ENDCASE
+IF re_open% THEN PROCdisplay_menu(menuup%,0,0) ELSE menuup%=-1
+:
+REM We decode the menu choice here.  It is fairly self-explanatory.  Note the code to re-open
+REM the menu when selections are made with adjust.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Wimp StartUp and CloseDown routines
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCstart_up
+SYS "Hourglass_On"
+:
+DIM a% 256, b% 3000, q% 256
+:
+resource_path$=FNterritory_resources("<Index$Dir>.Resources")
+:
+DIM message_block% 16
+SYS "MessageTrans_FileInfo",,resource_path$+"Messages" TO flags%,,message_size%
+IF (flags% AND 1) THEN message_buffer%=0 ELSE DIM message_buffer% message_size%
+SYS "MessageTrans_OpenFile",message_block%,resource_path$+"Messages",message_buffer%
+:
+task_name$=FNtoken("TaskName")
+:
+REM Now load the message file into memory, if it isn't already there.
+!b%=&2
+b%!4=&3
+b%!8=&5
+b%!12=&A
+b%!16=&502
+b%!20=&400C0
+b%!24=&400C1
+b%!28=&400C9
+b%!32=0
+$q%="TASK"
+SYS "Wimp_Initialise",300,!q%,task_name$,b% TO wimp_version%,task_handle%
+SYS "OS_Byte",129,0,&FF TO ,os_version%
+:
+risc_pc%=(os_version%>=&A5)
+:
+no_nulls%=&1831
+get_nulls%=&1830
+:
+poll_mask%=no_nulls%
+:
+REM First turn the hourglass on, then set up any parameter blocks, and call Wimp_Initialise.
+:
+PROCdrag_init
+:
+ind_size%=&FFF
+DIM indir% ind_size%, view_temp% 255
+DIM opt_panes%(6)
+:
+PROCopen_templates(resource_path$+"Templates")
+to%=FNload_template("Info",b%,indir%,ind_size%)
+SYS "Wimp_CreateWindow",,b% TO info_wind%
+to%=FNload_template("Viewer",view_temp%,to%,ind_size%-(to%-indir%))
+to%=FNload_template("ObjInfo",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO obj_info%
+to%=FNload_template("DiscInfo",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO disc_info%
+to%=FNload_template("Options",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_wind%
+to%=FNload_template("Opt1",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(1)
+to%=FNload_template("Opt2",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(2)
+to%=FNload_template("Opt3",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(3)
+to%=FNload_template("Opt4",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(4)
+to%=FNload_template("Opt5",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(5)
+to%=FNload_template("Opt6",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO opt_panes%(6)
+to%=FNload_template("Save",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO save_wind%
+to%=FNload_template("SaveSp",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO savesp_wind%
+to%=FNload_template("Search",b%,to%,ind_size%-(to%-indir%))
+SYS "Wimp_CreateWindow",,b% TO search_wind%
+to%=FNload_template("FCount",b%,to%,ind_size%-(to%-indir%))
+progress_title%=b%!72
+SYS "Wimp_CreateWindow",,b% TO progress_wind%
+PROCclose_templates
+:
+REM Next we initialise the solid dragging routines.  This depends on RiscOs 3.  Then we can set
+REM up an indirection area and load the templates.
+:
+SYS "OS_File",20,"<Index$Dir>.Code" TO code_type%,,,,code_size%
+IF code_type%=0 THEN PROCmake_error("NoCode")
+DIM code% code_size%+1024
+SYS "OS_File",255,"<Index$Dir>.Code",code%
+:
+REM Load the machine code file into memory.
+:
+heap_size%=45*1024
+DIM heap% heap_size%
+SYS "OS_Heap",0,heap%,,heap_size%
+code%!12=heap%
+code%!16=HIMEM
+CALL code%+36
+IF !code%=-1 THEN PROCmake_error($(code%!8))
+:
+REM This is a block of memory used to store any indirected data we need.  We manage it using
+REM OS_Heap for ease.  Finally, we point our code to the heap, so that it can use it!
+REM The code is called to initialise the wimpslot heap.
+:
+DIM search_for% 16
+:
+scan_store%=-1
+:
+DIM windows%(50,7), icons%(500), i_copy%(500)
+windows%()=FALSE
+opening_cycle%=0
+pause_action%=FALSE
+faster_action%=FALSE
+verbose_action%=FALSE
+filer_action%=FALSE
+found_action%=FALSE
+opt_pane%=1
+:
+DIM files_loaded$(50), base_addr%(50)
+files_loaded$()=""
+base_addr%()=-1
+do_not_release%=-1
+:
+DIM file_menu_ptr%(50)
+:
+REM Create a place to put search strings so that the code can get to them.
+REM Set scan_store% to -1 to show that there is not a block currently claimed.  Next set up
+REM an array to store window details, and two vectors for storing selection details.  Finally,
+REM set up two vectors for file management.
+REM file_menu_ptr%() relates the index menus to the files loaded.
+:
+DIM display_sx%(2),display_sy%(2),display_gx%(2),display_gy%(2),display_if%(2),display_iw%(2)
+display_sx%()=188,224,224                   : REM Icon width
+display_sy%()=108,36 ,36                    : REM Icon height
+display_gx%()=0  ,8  ,8                     : REM X 'guttering'
+display_gy%()=16 ,8  ,8                     : REM Y 'guttering'
+display_iw%()=4  ,3  ,1                     : REM Initial number of columns
+display_if%()=&1701550B,&17015D13,&17015D13 : REM Icon flags
+:
+REM Set up the standard dimensions for each display type.  These are used when creating new
+REM viewers.
+:
+PROCload_options
+PROCget_size
+:
+DIM time_b% 8,time_format% 64,time_string% 64
+:
+DIM file_types% 1024
+:
+quit%=FALSE
+:
+$FNindirection(info_wind%,7)=LEFT$(FNtoken("Version")+" ("+FNtoken("Date")+")",26)
+:
+i%=FNicon_bar("!index")
+:
+!b%=info_wind%
+b%!4=info_wind%
+b%!8=obj_info%
+b%!12=info_wind%
+b%!16=info_wind%
+b%!20=info_wind%
+b%!24=disc_info%
+b%!28=savesp_wind%
+b%!32=info_wind%
+:
+PROCload_menu_block(resource_path$+"Menus",b%)
+:
+main_menu%=!b%
+disp_menu%=b%!4
+file_menu%=b%!8
+find_menu%=b%!12
+access_menu%=b%!16
+sopt_menu%=b%!20
+indx_menu%=b%!24
+ibar_menu%=b%!28
+ibix_menu%=b%!32
+opts_menu%=b%!36
+spr_menu%=b%!40
+flst_menu%=b%!44
+:
+menuup%=-1
+:
+state%=INSTR(state$,"!RunImage")+11
+state$=MID$(state$,state%)
+IF state$<>"" THEN PROCinit_load(state$)
+:
+SYS "Hourglass_Off"
+:
+REM Finally, load the preferences, deimension some buffers for the time and date calls, create
+REM an area of memory for storing file type flags when scanning discs, and set a flag to say
+REM that we do not want to quit immediately.  Now we can put an icon on the icon bar, create our
+REM menus, and then turn the hourglass off.
+REM The last thing to do is check the gubbins that the OS passed to us on loading, and if there
+REM is a valid filename there, to load that file.
+ENDPROC
+:
+:
+DEF PROCclose_down
+IF scan_store%>-1 THEN PROCrelease_slot(scan_store%) : scan_store%=-1
+FOR loop%=0 TO 50
+ IF windows%(loop%,0) THEN PROCrelease_slot(windows%(loop%,4))
+ FOR loop2%=0 TO 50
+  IF windows%(loop2%,4)=windows%(loop%,4) THEN windows%(loop2%,0)=FALSE
+ NEXT loop2%
+NEXT loop%
+SYS "MessageTrans_CloseFile",message_block%
+SYS "Wimp_CloseDown"
+:
+REM If we still have an unsaved index in a scan block, we must release this memory.  We also go
+REM through the list of defined windows, releasing any claimed RMA space.  Next we close
+REM the message file, and finally we can call Wimp_CloseDown.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Memory management routines
+: REM ------------------------------------------------------------------------------------------
+:
+DEF FNheap_dim(size%)
+SYS "XOS_Heap",2,heap%,,size% TO ,,dim% ;flags%
+IF flags% AND 1 THEN dim%=-1
+:
+REM We can claim blocks of data from the 'heap' using FNheap_dim instead of DIM.  This allows
+REM blocks to be de-allocated after use: with DIM our available memory would slowly fill up.
+REM We return -1 if the memory could not be allocated.
+=dim%
+:
+:
+DEF PROCheap_release(release_blk%)
+SYS "OS_Heap",3,heap%,release_blk%
+:
+REM Here we de-allocate memory from the heap.
+ENDPROC
+:
+:
+DEF FNclaim_slot(size%)
+!code%=size%
+CALL code%+44
+:
+REM This call claims blocks of memory from the OS_Heap managed App Workspace.
+REM We return -1 if the memory required could not be claimed.
+=!code%
+:
+:
+DEF PROCrelease_slot(release_block%)
+!code%=release_block%
+CALL code%+48
+:
+REM Release a block from the WimpSlot heap.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Disc Scanning
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCstart_scan
+LOCAL st%,sp%,ts%,free%,slot%
+:
+REM Delete any existing data block.
+:
+IF scan_store%>-1 THEN PROCrelease_slot(scan_store%) : scan_store%=-1
+:
+REM Calculate how much memory to claim.  grab_mode 1 is just the sum of the file and sprites areas,
+REM mode 2 is all the free memory minus the amount to be left free.  Note the hack to get around
+REM the 28Mb app workspace limit.
+:
+CASE grab_mode% OF
+ WHEN 1 : st%=store_size% : sp%=sprite_size% : ts%=st%+sp%
+ WHEN 2
+  SYS "Wimp_SlotSize",-1,-1 TO slot%,,free%
+  slot%=slot% DIV 1024
+  free%=(free% DIV 1024)-leave_free%
+  IF free%>(28600-slot%) THEN free%=28600-slot% : REM 28Mb-current_slot_size
+  CASE grab_free_mode% OF
+   WHEN 1 : st%=store_free_size% : sp%=free%-st% : ts%=st%+sp%
+    IF sp%<1 THEN PROCreport("CantScan") : ENDPROC
+   WHEN 2 : st%=free%*(store_free_percent%/100) : sp%=free%-st% : ts%=st%+sp%
+    IF sp%<1 THEN PROCreport("CantScan") : ENDPROC
+  ENDCASE
+ENDCASE
+:
+choice_sprites$="!"+FNtoken("Sp"+STR$(sprites_file%))
+default_sprites$="!"+FNtoken("Sp1")
+scan_store%=FNclaim_slot(ts%*1024)
+IF scan_store%=-1 THEN PROCreport("CantScan") : ENDPROC
+:
+REM Scan the disc.
+:
+PROCscan_disc(index_system$,index_drive%,scan_store%,st%*1024,sp%*1024)
+ENDPROC
+:
+:
+DEF PROCscan_disc(system$,disc%,store%,soff%,ssize%)
+SYS "Hourglass_On"
+IF soff%<40 THEN PROCreport("NoAlloc") : ENDPROC
+PROCclear_file_types
+:
+file_sprites%=store%+soff%
+!file_sprites%=ssize%
+file_sprites%!8=16
+SYS "OS_SpriteOp",256+9,file_sprites%
+:
+path$=system$+"::"+STR$(disc%)+".$"
+:
+SYS "XOS_FSControl",0,path$ TO ;flag%
+IF (flag% AND 1) THEN PROCreport("NoDisc") : PROCrelease_slot(scan_store%) : scan_store%=-1 : ENDPROC
+SYS "OS_GBPB",5,,b%
+b%!(1+?b%)=13
+$store%=LEFT$($(b%+1),12)
+:
+REM Before we can scan, we must set up a sprite area to store any !Sprites files we come across.
+REM This is done at an offset into our index block.  We work out the path we must scan (ie. a
+REM file system and a drive), and mount that drive.  We check for a 'no disc' error,
+REM since we must de-allocate our memory block if an error occurs.  If the path is OK, we can
+REM read the disc name and store it.
+:
+SYS "XOS_FSControl",55,path$ TO free%,free_msb%,,size%,size_msb% ;flag%
+:
+IF flag% AND 1 THEN
+ SYS "OS_FSControl",49,path$ TO free%,,size%
+ELSE
+ IF size_msb%<>0 OR (size% AND &80000000) THEN size%=-1
+ IF free_msb%<>0 OR (free% AND &80000000) THEN free%=-1
+ENDIF
+:
+CASE size% OF
+ WHEN &190000 : IF b%?5=6 THEN store%!32=1 : REM ADFS 1.6M (F)
+ WHEN &C8000  : IF b%?5=6 THEN store%!32=0 : REM ADFS 800K (E)
+                IF b%?5=0 THEN store%!32=2 : REM ADFS 800K (D)
+ WHEN &A0000  : IF b%?5=0 THEN store%!32=3 : REM ADFS 640K (L)
+ WHEN &168000 : IF b%?5=0 THEN store%!32=5 : REM DOS 1.44M
+ WHEN &B4000  : IF b%?5=0 THEN store%!32=4 : REM DOS 720K
+ WHEN &12C000 : IF b%?5=0 THEN store%!32=7 : REM DOS 1.2M
+ WHEN &5A000  : IF b%?5=0 THEN store%!32=6 : REM DOS 360K
+ REM store%!32=8 : DOS 180K
+ REM store%!32=9 : DOS 320K
+ REM store%!32=10 : DOS 160K
+ REM store%!32=11 : Atari 720K
+ REM store%!32=12 : Atari 360K
+ OTHERWISE : store%!32=-1
+ENDCASE
+:
+REM Check the format...
+REM This is a kludge!  I don't know how to do it properly, but this works for now, until
+REM I find a better way.  Check the format size, and guess...
+REM It doesn't handle Atari discs at all!
+:
+IF free%=-1 THEN size%=-1
+store%!24=free%
+store%!28=size%-free%
+:
+REM This little lot simply calculates the amount of free and used space on a variety of
+REM different filesystems.
+:
+files%=0
+PROCget_system_time(store%+12)
+index_spr%=FNscan_dir(path$,store%+40,-1,store%+soff%-40,files%)
+store%!20=files%
+store%!36=index_spr%+40
+store%?19=0
+IF sprites_small% THEN store%?19=1
+:
+REM We have now done the difficult bit.  We start off by zeroing the file count, and then we
+REM store the current date and time, as the time when the index took place.  The call to
+REM FNscan_dir does the necessary on the disc, returning the offset from the start of the
+REM actual index (store%+40) to the first free word.  With this information, we can store the
+REM file count, offset to the free space (which will become the sprite area), and set the sprite
+REM flags.
+:
+index_spr%=store%+store%!36
+!index_spr%=(store%+soff%)-index_spr%
+index_spr%!8=16
+SYS "OS_SpriteOp",256+9,index_spr%
+:
+SYS "Wimp_BaseOfSprites" TO rom%,ram%
+:
+PROCtransfer_sprite(rom%,index_spr%,"directory")
+IF sprites_small% THEN PROCtransfer_sprite(rom%,index_spr%,"small_dir")
+PROCtransfer_sprite(rom%,index_spr%,"application")
+IF sprites_small% THEN PROCtransfer_sprite(rom%,index_spr%,"small_app")
+PROCtransfer_sprite(rom%,index_spr%,"file_xxx")
+IF sprites_small% THEN PROCtransfer_sprite(rom%,index_spr%,"small_xxx")
+:
+PROCtake_sprites(rom%,index_spr%,FALSE)
+PROCtake_sprites(ram%,index_spr%,FALSE)
+PROCtake_sprites(file_sprites%,index_spr%,TRUE)
+:
+!index_spr%=index_spr%!12
+:
+PROCset_sprites(store%+40,index_spr%)
+:
+REM Nearly there.  First we must set up a sprite area after the index data, and then point
+REM index_spr% to it.  We find the ROM and RAM wimp sprite areas, and then transfer the three
+REM vital sprites (dirs, apps, and files) across using PROCtransfer_sprite.  Now we can call
+REM PROCtake_sprites three times, for the two Wimp areas and for our own area we made during
+REM scanning.  Note that we only take app sprites from the scan area.  This COULD cause
+REM problems, but only in some rare cases (for example sacnning the Resources: filesystem,
+REM since Acorn puts its apps' icons in the ROM area)...
+REM Now all the sprites have been collected, we can set the length of the sprite area correctly,
+REM since it will never have to grow, and then use PROCset_sprites to set flags for each object,
+REM so that we can quickly check to see whether the correct sprite exists when opening windows.
+REM Below we set the save path, and our job is done...
+:
+$FNindirection(save_wind%,1)=search_path$+"."+$store%
+:
+SYS "Hourglass_Off"
+ENDPROC
+:
+:
+DEF PROCtake_sprites(from%,to%,apps%)
+LOCAL loop%,keep_spr%
+SYS "OS_SpriteOp",256+8,from% TO ,,,spr_num%
+loop%=1
+WHILE loop%<=spr_num%
+ keep_spr%=FALSE
+ SYS "OS_SpriteOp",256+13,from%,b%,4095,loop% TO ,,,len%
+ b%?len%=13
+ IF apps% AND sprites_apps% AND LEFT$($b%,1)="!" THEN keep_spr%=TRUE
+ IF apps% AND sprites_apps% AND sprites_small% AND  LEFT$($b%,3)="sm!" THEN keep_spr%=TRUE
+ IF sprites_files% AND LEFT$($b%,5)="file_" THEN
+  sp_type%=FNfile_type_num(RIGHT$($b%,3))
+  IF FNfile_type_used(sp_type%,0) THEN keep_spr%=TRUE : PROCclear_file_type(sp_type%,0)
+ ENDIF
+ IF sprites_small% AND sprites_files% AND LEFT$($b%,6)="small_" THEN
+  sp_type%=FNfile_type_num(RIGHT$($b%,3))
+  IF FNfile_type_used(sp_type%,1) THEN keep_spr%=TRUE : PROCclear_file_type(sp_type%,1)
+ ENDIF
+ IF keep_spr% THEN PROCtransfer_sprite(from%,to%,$b%)
+ loop%+=1
+ENDWHILE
+:
+REM This code moves the sprites that we want from one sprite area to another.  First we find out
+REM how many sprites there are, and then we scan them all.  Note that the choice also depends
+REM on the preferences.
+REM If the name begins with ! or sm!, and the apps% flag is set, we keep the sprite.  If it
+REM begins with file_ OR small_, and the right hand end is not one of the exceptions, we
+REM consult the list of file types compiled during scanning, and if we need the sprite we
+REM take it and then unset its bit in our 'wanted' list.
+REM If after all this we want the sprite, we then transfer it.
+ENDPROC
+:
+:
+DEF FNscan_dir(path$,data%,parent%,max%,RETURN files%)
+LOCAL read%,items%,item%,offset%,sub_dir%,type%,ftype%
+item%=0
+SYS "OS_GBPB",9,path$,b%,100,0,4095,"*" TO ,,,items%
+offset%=8+44*items%
+:
+IF data%+offset%>max% THEN PROCmake_error("NoMem")
+:
+files%+=items%
+!data%=items%
+IF parent%<>-1 THEN
+ data%!4=(data%-parent%)
+ELSE
+ data%!4=parent%
+ENDIF
+:
+REM On scanning a directory, we set the item pointer to zero, and check that there is enough
+REM memory to store the definition.  If there is, we increment the file count, and store the
+REM number of items.  Finally, we store a offset back to the parent directory's data.
+REM Now we can check if there are any items in the dirctory, and if so, scan them...
+:
+IF items%>0 THEN
+ FOR read%=1 TO items%
+  SYS "OS_GBPB",12,path$,b%,1,item%,4095,"*" TO ,,,,item%
+  ptr%=b%+24
+  loop%=0
+  WHILE ptr%?loop%<>0
+   loop%+=1
+  ENDWHILE
+  ptr%?loop%=13
+  IF b%!16=3 THEN
+   SYS "OS_File",&05,path$+"."+$(b%+24) TO ,,b%!20
+   b%!20=(b%!20 AND &FFF00)>>>8
+  ENDIF
+  :
+  REM We read each item's details.  The file name has a carriage return added, so that BASIC
+  REM can read it.  If the item shows up as an image filesystem (if b%!16=3), then we use
+  REM OS_File to check its filetype again, since systems such as ArcFS change the type to
+  REM resemble a directory (&1000).  Therefore we must find their REAL filetype.
+  :
+  IF b%!16=1 OR b%!16=3 THEN
+   PROCset_file_type(b%!20)
+   REM IF b%!20=&FF9 AND FNlower_case($(b%+24))="!sprites" THEN SYS"OS_SpriteOp",256+11,file_sprites%,path$+"."+$(b%+24)
+  ENDIF
+  data%!(((read%-1)*44)+8)=b%!20                : REM Store the File Type
+  $(data%+((read%-1)*44)+12)=LEFT$($(b%+24),15) : REM Store the File Name
+  data%!(((read%-1)*44)+28)=!b%                 : REM Store the Date Stamp (Low Byte)
+  data%!(((read%-1)*44)+32)=b%!4                : REM Store the Date Stamp (High Byte)
+  data%!(((read%-1)*44)+36)=b%!12               : REM Store the File Attributes
+  data%!(((read%-1)*44)+40)=b%!8                : REM Store the File Length
+  data%!(((read%-1)*44)+44)=-1                  : REM Store the Sprite Pointer
+  :
+  REM If the object is a file, then we check its name and type.  If it is a sprite file (FF9)
+  REM called !Sprites, we merge it into our sprite area.  Now we can store the data about the
+  REM object in the index.
+  :
+  IF b%!16>1 THEN
+   IF b%!16=2 AND b%!20=&1000 THEN sub_dir%=offset%
+   IF b%!16=2 AND b%!20=&2000 THEN
+    IF record_apps% THEN sub_dir%=offset% ELSE sub_dir%=-1
+    SYS "OS_File",&05,path$+"."+$(b%+24)+"."+choice_sprites$ TO type%,,ftype%
+    IF type%=1 THEN
+     ftype%=(ftype% AND &FFF00)>>>8
+     IF ftype%=&FF9 THEN
+      SYS "XOS_SpriteOp",256+11,file_sprites%,path$+"."+$(b%+24)+"."+choice_sprites$ TO ;ok%
+      IF (ok% AND 1) THEN PROCmake_error("SprFull")
+     ENDIF
+    ELSE
+     SYS "OS_File",&05,path$+"."+$(b%+24)+"."+default_sprites$ TO type%,,ftype%
+     IF type%=1 THEN
+      ftype%=(ftype% AND &FFF00)>>>8
+      IF ftype%=&FF9 THEN
+       SYS "XOS_SpriteOp",256+11,file_sprites%,path$+"."+$(b%+24)+"."+default_sprites$ TO ;ok%
+       IF (ok% AND 1) THEN PROCmake_error("SprFull")
+      ENDIF
+     ENDIF
+    ENDIF
+   ENDIF
+   IF b%!16=3 THEN
+    IF record_image% THEN sub_dir%=offset% ELSE sub_dir%=-1
+   ENDIF
+  ELSE
+   sub_dir%=-1
+  ENDIF
+  data%!(((read%-1)*44)+48)=sub_dir%
+  :
+  REM If the object is not a file, then it must contain more files.  If it is a directory
+  REM (b%!16=2 and b%!20=&1000), then we can simply simply scan it, so we set the pointer
+  REM to where we want the data to go to the current free offset.  If it is a application
+  REM (b%!16=2 and b%!20=&2000),  then we must decide whether we wish to scan it.  If so, we do
+  REM as before.  If not, then we set the pointer to -1.  We check inside it for a Sprites
+  REM file, first in the chosen format and then as a plain old low-res file; if one is found
+  REM it is loaded into the sprite area. If the object is an image (b%!16=3), then we can scan
+  REM it if we need to, and so set the pointer accordingly.  If, way back, we decided the
+  REM object was a file, then we set the pointer to -1.  After this lot, we can then write our
+  REM pointer to memory in the correct place...
+  REM Below, if we have a valid (not -1) pointer to a block of memory, then we recurse by
+  REM calling ourselves with the required offset, then incrementing that offset for the
+  REM next recursion.
+  :
+  IF sub_dir%<>-1 THEN offset%+=FNscan_dir(path$+"."+$(b%+24),data%+offset%,data%,max%,files%)
+ NEXT read%
+ENDIF
+=offset%
+:
+:
+DEF PROCset_sprites(addr%,spb%)
+LOCAL loop%,type%,ptr%,spr$
+IF !addr%>0 THEN
+ FOR loop%=1 TO !addr%
+  ptr%=addr%+8+(loop%-1)*44
+  type%=!ptr%
+  ptr%!36=0
+  spr$=""
+  IF type%<&1000 THEN
+   IF sprites_files% THEN spr$="file_"+FNhex_type(!ptr%)
+  ELSE
+   IF type%=&2000 AND sprites_apps% THEN spr$=$(ptr%+4)
+   IF type%=&1000 THEN spr$="directory"
+  ENDIF
+  SYS "XOS_SpriteOp",256+24,spb%,spr$ TO ;ok%
+  IF (ok% AND 1)=0 THEN ptr%!36+=1
+  IF sprites_small% THEN
+   spr$=""
+   IF type%<&1000 THEN
+    IF sprites_files% THEN spr$="small_"+FNhex_type(!ptr%)
+   ELSE
+    IF type%=&2000 AND sprites_apps% THEN spr$="sm"+$(ptr%+4)
+    IF type%=&1000 THEN spr$="small_dir"
+   ENDIF
+   SYS "XOS_SpriteOp",256+24,spb%,spr$ TO ;ok%
+   IF (ok% AND 1)=0 THEN ptr%!36+=2
+  ENDIF
+  IF ptr%!40>-1 THEN PROCset_sprites(addr%+ptr%!40,spb%)
+ NEXT loop%
+ENDIF
+:
+REM This procedure sets the sprite flags for every object in the directory block.  For every
+REM object we calculate the required sprite name depending on the preferences set, and then
+REM use an OS_SpriteOp call to see if it is in our sprite area.  If it is then we set the flag
+REM accordingly.  We also do this for small sprites, if the preference is set.  Finally, if
+REM the object is a directory, we recurse.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Open directories and display management
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCopen_root(addr%)
+PROCopen_dir(addr%+40,FNtoken("Index")+"::"+$addr%+".$",addr%,200+(55*opening_cycle%),1000)
+opening_cycle%=(opening_cycle%+1) MOD 7
+:
+REM PROCopen_root will open the root directory of a structure.  It does this by knowing
+REM where the data for the first directory is to be found.  The procedure is simply defined for
+REM convenience.  opening_cycle% decides where on the screen the window will appear (so that
+REM windows do not obscure each other).
+ENDPROC
+:
+:
+DEF PROCopen_dir(addr%,title$,block%,open_x%,open_y%)
+LOCAL loop%,ptr%,spr$,i_flags%,half%,small%
+window%=FNnew_viewer
+IF window%=-1 THEN PROCreport("TooManyViewers") : ENDPROC
+view_temp%!64=block%+block%!36
+title$=LEFT$(title$,255)
+windows%(window%,3)=FNheap_dim(LEN(title$)+1)
+IF windows%(window%,3)=-1 THEN
+ PROCreport("WinHeapFull")
+ windows%(window%,0)=FALSE
+ENDIF
+IF windows%(window%,3)=-1 THEN ENDPROC
+view_temp%!72=windows%(window%,3)
+view_temp%!80=LEN(title$)+1
+SYS "Wimp_CreateWindow",,view_temp% TO windows%(window%,1)
+windows%(window%,2)=addr%
+$windows%(window%,3)=LEFT$(title$,255)
+windows%(window%,4)=block%
+windows%(window%,5)=display_iw%(global_type%)
+windows%(window%,6)=global_type%
+windows%(window%,7)=0
+:
+REM First we must be allocated a free 'window definition block'.  If there are none free (we can
+REM have 51 viewers on screen at once), then we can do no more.  First we point the window
+REM definition to the correct sprite area.  Having done this, we can deal with the title.
+REM It is truncated to 255 characters, and then a block of memory is claimed from the heap to
+REM store this.  We point the window definition to this block, include the block length, and
+REM create the window.  Now information can be slotted into the definition block.  The directory
+REM block address, the title string, the file address, the number of columns, the display
+REM type, and the opening cycle are stored.
+:
+x_size%=display_sx%(global_type%)  : REM x size of icons
+y_size%=display_sy%(global_type%)  : REM y size of icons
+x_gap%=display_gx%(global_type%)   : REM x 'guttering'
+y_gap%=display_gy%(global_type%)   : REM y 'guttering'
+i_flags%=display_if%(global_type%) : REM icon flags
+small%=(block%?19 AND 1)=1         : REM are small sprites stored?
+:
+x_pos%=x_gap%
+y_pos%=-(y_size%+y_gap%)
+:
+REM We set various variables used in the window layout, set the x and y start points, and then,
+REM if there are any icons to display, we...
+:
+IF !addr%>0 THEN
+ FOR loop%=1 TO !addr%
+  ptr%=addr%+((loop%-1)*44)+8
+  type%=!ptr%
+  val%=FNheap_dim(14)
+  IF val%=-1 THEN
+   PROCreport("WinHeapFull")
+   PROCkill_viewer(window%)
+  ENDIF
+  IF val%=-1 THEN ENDPROC
+  $val%="S"+FNsprite_name($(ptr%+4),type%,global_type%,ptr%!36,small%,half%)
+  PROCcreate_icon(windows%(window%,1),x_pos%,y_pos%,x_size%,y_size%,i_flags%-half%,ptr%+4,val%,12)
+  x_pos%+=x_size%+x_gap%
+  IF (x_pos%-x_gap%>=display_iw%(global_type%)*(x_size%+x_gap%) OR global_type%=2) AND loop%<!addr% THEN y_pos%-=y_size%+y_gap% : x_pos%=x_gap%
+ NEXT loop%
+ENDIF
+:
+IF global_type%=2 THEN PROCfull_info_icons(addr%,window%)
+:
+REM For each object, we must create an icon.  The address of the object data is put into ptr%,
+REM and the file type is determined.  14 bytes are claimed from the heap for the icon's
+REM validation string (the icon text pointer is merely set to point to the name in the file),
+REM and then the sprite name is calculated by FNsprite_name.  PROCcreate_icon is called to make
+REM the icon.  The x and y positions are then incremented.
+REM After all the file icons have been created, the full info icons are created if required.
+:
+IF y_pos%>-6*(y_size%+y_gap%) THEN y_area%=y_pos% ELSE y_area%=-6*(y_size%+y_gap%)
+IF y_pos%<-(y_size%+y_gap%) THEN x_area%=display_iw%(global_type%)*(x_size%+x_gap%) ELSE x_area%=x_pos%
+:
+REM x_area% and y_area% are set up to contain the initial displayed area of our window.
+:
+IF global_type%=2 THEN max_width%=938 ELSE max_width%=!addr%*(x_size%+x_gap%)+14
+IF max_width%<2*(x_size%+x_gap%)+14 THEN max_width%=2*(x_size%+x_gap%)+14
+!a%=0
+a%!4=y_pos%-8
+a%!8=max_width%
+a%!12=0
+SYS "Wimp_SetExtent",windows%(window%,1),a%
+:
+REM We now calculate the maximum extent of our window (so it is as wide as all the icons in a
+REM line), and call Wimp_SetExtent to set the window extent to these values.
+:
+IF global_type%=2 THEN max_width%=938 ELSE max_width%=x_area%+14
+IF max_width%<2*(x_size%+x_gap%)+14 THEN max_width%=2*(x_size%+x_gap%)+14
+!q%=windows%(window%,1)
+SYS "Wimp_GetWindowState",,q%
+q%!4=open_x%
+q%!8=open_y%+y_area%-8
+q%!12=open_x%+max_width%
+q%!16=open_y%
+IF q%!4<0 THEN q%!12=q%!12+(0-q%!4) : q%!4=q%!4+(0-q%!4)
+IF q%!8<0 THEN q%!16=q%!16+(0-q%!8) : q%!8=q%!8+(0-q%!8)
+IF q%!12>size_x% THEN q%!4=q%!4-(q%!12-size_x%) : q%!12=q%!12-(q%!12-size_x%)
+IF q%!16>(size_y%-32) THEN q%!8=q%!8-(q%!16-(size_y%-32)) : q%!16=q%!16-(q%!16-(size_y%-32))
+SYS "Wimp_OpenWindow",,q%
+:
+REM Now calculate the initial visible sizes, and set the window to the correct place on the
+REM screen for opening.  Once the data block supplied has been filled correctly, we can open the
+REM window.  The viewer is now open!
+ENDPROC
+:
+:
+DEF PROCmove_icons(blk%)
+LOCAL small%,half%,select%
+window%=FNviewer_number(!blk%)
+small%=(windows%(window%,4)?19 AND 1)=1
+:
+REM We are passed the Wimp's open window data block, so we call FNviewer_number with the window
+REM handle to get the number of our definition block.  Now we know the number we can find out
+REM whether small icons are available.
+:
+x_size%=display_sx%(windows%(window%,6)) : REM x size of icons
+y_size%=display_sy%(windows%(window%,6)) : REM y size of icons
+x_gap%=display_gx%(windows%(window%,6))  : REM x 'guttering'
+y_gap%=display_gy%(windows%(window%,6))  : REM y 'guttering'
+i_flags%=display_if%(windows%(window%,6)): REM icon flags
+:
+work_x%=blk%!12-blk%!4
+work_y%=blk%!16-blk%!8
+:
+REM Now we can collect some information about the size of the icons, and also find out from the
+REM Wimp's block how big the current visible area is.
+:
+IF INT(work_x%/(x_size%+x_gap%))=windows%(window%,5) THEN ENDPROC
+windows%(window%,5)=INT(work_x%/(x_size%+x_gap%))
+:
+REM Before we do anything, we check that the number of columns displayable has changed.  If it
+REM hasn't, we have nothing to do, so we can simply exit.  If it has, we store the new number
+REM for future reference.
+:
+x_pos%=x_gap%
+y_pos%=-(y_size%+y_gap%)
+:
+addr%=windows%(window%,2)
+:
+REM First we set the x and y position of the first icon, then we find the address of the
+REM directory data in memory.  Then, if there are any icons...
+:
+IF !windows%(window%,2)>0 THEN
+ FOR loop%=1 TO !windows%(window%,2)
+  ptr%=addr%+((loop%-1)*44)+8
+  !q%=!blk%
+  q%!4=loop%-1
+  SYS "Wimp_GetIconState",,q%
+  SYS "Wimp_DeleteIcon",,q%
+  select%=(q%!24 AND &200000)
+  q%!4=x_pos%
+  q%!8=y_pos%
+  q%!12=x_pos%+x_size%
+  q%!16=y_pos%+y_size%
+  $(q%!32)="S"+FNsprite_name($(q%!28),!ptr%,windows%(window%,6),ptr%!36,small%,half%)
+  q%!20=i_flags%-half%+select%
+  q%!24=q%!28
+  q%!28=q%!32
+  q%!32=q%!36
+  SYS "Wimp_CreateIcon",,q%
+  x_pos%+=x_size%+x_gap%
+  IF (x_pos%-x_gap%>work_x%-(x_size%+x_gap%) OR (windows%(window%,6)=2)) AND loop%<!windows%(window%,2) THEN y_pos%-=y_size%+y_gap% : x_pos%=x_gap%
+ NEXT loop%
+ENDIF
+:
+REM For each icon, we calculate the pointer to the object data, the get the information about
+REM the existing icon before deleting it.  The correct information is now added or moved about,
+REM with new sprite name and icon flags being used if necessary.  Finally, a new icon is created
+REM and the x and y offsets incremented correctly.
+:
+IF windows%(window%,6)=2 THEN
+ IF NOT FNicon_exists(!blk%,!addr%) THEN PROCfull_info_icons(addr%,window%)
+ELSE
+ IF FNicon_exists(!blk%,!addr%) THEN PROCkill_full_info(addr%,window%)
+ENDIF
+:
+REM If the window is now in full info mode, see if an icon exists beyond the number of objects.
+REM If not, the full info icons must be created.  If it is not in full info mode and such an
+REM icon exists, then the full info icons must be deleted.
+:
+IF y_pos%<-(y_size%+y_gap%) THEN x_area%=4*(x_size%+x_gap%) ELSE x_area%=x_pos%
+:
+IF windows%(window%,6)=2 THEN max_width%=938 ELSE max_width%=!addr%*(x_size%+x_gap%)+14
+IF max_width%<2*(x_size%+x_gap%)+14 THEN max_width%=2*(x_size%+x_gap%)+14
+!a%=0
+a%!4=y_pos%-8
+a%!8=max_width%
+a%!12=0
+SYS "Wimp_SetExtent",!blk%,a%
+PROCredraw_window(!blk%)
+:
+REM Finally, we can calculate the window size, and set the extent again.  We do not need to set
+REM the visible area, since the user must have just changed this.
+ENDPROC
+:
+:
+DEF FNsprite_name(name$,type%,disp%,flags%,sm%,RETURN half%)
+LOCAL spr$
+CASE type% OF
+ WHEN &1000 : IF disp%>0 AND sm% THEN
+               spr$="small_dir"    : half%=&800
+              ELSE
+               spr$="directory"    : half%=&0
+              ENDIF
+ WHEN &2000 : IF (flags% AND 1)=1 THEN
+               IF disp%>0 AND (flags% AND 2)=2 THEN
+                spr$="sm"+name$    : half%=&800
+               ELSE
+                spr$=name$         : half%=&0
+               ENDIF
+              ELSE
+               IF disp%>0 AND sm% THEN
+                spr$="small_app"   : half%=&800
+               ELSE
+                spr$="application" : half%=&0
+               ENDIF
+              ENDIF
+ WHEN -1    : IF disp%>0 AND sm% THEN
+               spr$="small_xxx"    : half%=&800
+              ELSE
+               spr$="file_xxx"     : half%=&0
+              ENDIF
+ OTHERWISE  : IF (flags% AND 1)=1 THEN
+               IF disp%>0 AND (flags% AND 2)=2 THEN
+                spr$="small_"+FNhex_type(type%) : half%=&800
+               ELSE
+                spr$="file_"+FNhex_type(type%)  : half%=&0
+               ENDIF
+              ELSE
+               IF disp%>0 AND sm% THEN
+                spr$="small_xxx"   : half%=&800
+               ELSE
+                spr$="file_xxx"    : half%=&0
+               ENDIF
+              ENDIF
+ENDCASE
+:
+REM This function returns a valid sprite name for an icon.  The system for choosing depends on
+REM the filetype.  Note that the value returned in half% is subtracted from the icon flags, and
+REM will turn off the 'half size' flag if a half size sprite is available.
+REM For directories (&1000) and code (-1) files, choice between sprites depends on display type
+REM and whether small sprites exist.  For apps (&2000) and other files, the choice depends on
+REM whether specific sprites exist, and is controlled by the sprite flags.
+=spr$
+:
+:
+DEF PROCfull_info_icons(addr%,w%)
+LOCAL loop%,y_pos%,y_size%,y_gap%,temp%,temp$,ind%
+y_size%=display_sy%(windows%(w%,6))
+y_gap%=display_gy%(windows%(w%,6))
+:
+y_pos%=-(y_size%+y_gap%)
+:
+REM We initially obtain the height of one row, and the gap between rows; and set the y position
+REM to the first icon.  Then, if there are any objects, we...
+:
+IF !addr%>0 THEN
+ FOR loop%=1 TO !addr%
+  ptr%=addr%+((loop%-1)*44)+8
+  PROCcreate_std_icon(windows%(w%,1),232,y_pos%,110,y_size%,&17000001,FNaccess_bytes(ptr%!28))
+  temp%=ptr%!32
+  IF !ptr%<&1000 THEN
+   temp$=""
+   IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="K"
+   IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="M"
+   PROCcreate_std_icon(windows%(w%,1),342,y_pos%,86,y_size%,&17000201,STR$(temp%))
+   PROCcreate_std_icon(windows%(w%,1),412,y_pos%,40,y_size%,&17000001,temp$)
+  ENDIF
+  PROCcreate_std_icon(windows%(w%,1),444,y_pos%,165,y_size%,&17000001,FNfile_type(!ptr%))
+  ind%=FNheap_dim(21)
+  IF ind%=-1 THEN
+   PROCreport("InfoHeapFull")
+   PROCkill_full_info(addr%,w%)
+   PROCdisplay_type(1,w%)
+  ENDIF
+  IF ind%=-1 THEN ENDPROC
+  IF !ptr%=-1 THEN
+   $ind%=FNhex_address(ptr%!20)+" "+FNhex_address(ptr%!24)
+  ELSE
+   !time_b%=ptr%!24
+   time_b%?4=ptr%?20
+   $ind%=FNconvert_date(time_b%,"%24:%mi:%se %dy %m3 %ce%yr")
+  ENDIF
+  PROCcreate_icon(windows%(w%,1),598,y_pos%,325,y_size%,&17000101,ind%,-1,21)
+  y_pos%-=(y_size%+y_gap%)
+ NEXT loop%
+ENDIF
+:
+REM For each object, we point ptr% to the data.  The first icon to be created is the access
+REM icon.  The file size is then processed, and an icons created; followed by the file type.
+REM The date stamp or load & exec addresses need an indirected icon, and so 21 bytes are
+REM claimed from the heap.  These are used to store the text.
+ENDPROC
+:
+:
+DEF PROCkill_full_info(addr%,w%)
+LOCAL loop%
+loop%=!addr%
+IF !addr%>0 THEN
+ REPEAT
+  !q%=windows%(window%,1)
+  q%!4=loop%
+  SYS "Wimp_GetIconState",,q%
+  IF (q%!24 AND &100)=&100 THEN PROCheap_release(q%!28)
+  SYS "Wimp_DeleteIcon",,q%
+  loop%+=1
+ UNTIL NOT FNicon_exists(windows%(window%,1),loop%)
+ENDIF
+:
+REM Starting the loop one above the last object icon, we get the icon info from the Wimp.  If
+REM the icon was indirected, then the text buffer is released to the heap, and the icon is
+REM deleted.  This is continued until there are no more icons.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Loading and saving files
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCload_index
+LOCAL file$,to%,handle%
+CASE b%!40 OF
+ WHEN &0E1
+  b%!12=b%!8
+  b%!16=4
+  SYS "Wimp_SendMessage",17,b%,b%!4
+  file$=FNstring(b%+44)
+  here%=FNis_file_loaded(file$)
+  IF here%>-1 THEN
+   handle%=FNalready_open(here%+40)
+   IF handle%>-1 THEN
+    PROCopen(handle%)
+   ELSE
+    PROCopen_root(here%)
+   ENDIF
+  ELSE
+   size%=FNsquash_size(file$)
+   IF size%=-1 THEN ENDPROC
+   to%=FNclaim_slot(size%)
+   IF to%=-1 THEN PROCreport("SlotFull") : ENDPROC
+   IF FNsquash_load(file$,to%)=-1 THEN PROCrelease_slot(to%) : ENDPROC
+   PROCadd_file(file$,to%)
+   PROCopen_root(to%)
+  ENDIF
+ WHEN &1000,&2000
+  IF drag_path% THEN search_path$=FNstring(b%+44)
+ENDCASE
+:
+REM To load a file, we check to see if it is an index file.  If it is, we claim the wimp message
+REM and get the file name.  Before we load the file, however, we must check to see if it is
+REM already loaded in memory.  If the file is loaded, then we check to see if the root viewer
+REM is open (it is possible for no viewers to be open if the file is being searched as part
+REM of a search all).  If it is already open, then we simply reopen the window using the
+REM handle passed to us; bringing the window to the top of the stack.  If it is not open, we
+REM open the root.
+REM If the file is not loaded, we find its length and claim memory to store it from the RMA.
+REM We then load the file, and add its details to the loaded files list.  This allows us to
+REM discover if it is loaded (see above).  Now we can open the root directory.
+REM Note the use of FNsquash_size and FNsquash_load, since we are in fact dealing with Squash
+REM files, filetyped as indexes (confused? good!).  These functions call hooks into a piece
+REM of machine code, which does the job faster than BASIC can (surprise...).
+ENDPROC
+:
+:
+DEF PROCinit_load(f$)
+LOCAL here%,handle%
+here%=FNis_file_loaded(f$)
+IF here%>-1 THEN
+ handle%=FNalready_open(here%+40)
+ IF handle%>-1 THEN
+  PROCopen(handle%)
+ ELSE
+  PROCopen_root(here%)
+ ENDIF
+ELSE
+ size%=FNsquash_size(f$)
+ IF size%=-1 THEN ENDPROC
+ to%=FNclaim_slot(size%)
+ IF to%=-1 THEN PROCreport("SlotFull") : ENDPROC
+ IF FNsquash_load(f$,to%)=-1 THEN PROCrelease_slot(to%) : ENDPROC
+ PROCadd_file(f$,to%)
+ PROCopen_root(to%)
+ENDIF
+:
+REM This loads files in much the same way as described above, but is used on firing up !Index.
+ENDPROC
+:
+:
+DEF PROCsave(addr%)
+LOCAL length%,start%,out%,ws_size%
+SYS "OS_SpriteOp",256+8,addr%+(addr%!36) TO ,,,,,length%
+length%+=addr%!36
+:
+IF FNsquash_save($FNindirection(save_wind%,1),addr%,addr%+length%)=-1 THEN ENDPROC
+:
+PROCclose(save_wind%)
+PROCdisplay_menu(-1,0,0)
+:
+REM Here we save an index file.  The length is calculated using an OS_SpriteOp call, and adding
+REM the total of the index data and the sprite data.  The save is done using FNsquash_save,
+REM which calls a hook into a piece of machine code, doing the squash as fast as possible.
+ENDPROC
+:
+:
+DEF PROCquick_save(w%)
+IF INSTR($FNindirection(w%,1),".")>0 THEN
+ CASE w% OF
+  WHEN save_wind%
+   PROCsave(scan_store%)
+   PROCrelease_slot(scan_store%) : scan_store%=-1
+  WHEN savesp_wind%
+   PROCsave_sp(viewer_up%)
+ ENDCASE
+ELSE
+ PROCreport("SaveAs")
+ENDIF
+:
+REM If there is a '.' in the path, we simply assume that it is OK.  Then we can go on with the
+REM saving.  If it fails, we give Acorn's standard message.
+ENDPROC
+:
+:
+DEF PROCsave_sp(w%)
+SYS "OS_SpriteOp",256+12,windows%(w%,4)+(windows%(w%,4)!36),$FNindirection(savesp_wind%,1)
+PROCdisplay_menu(-1,0,0)
+:
+REM Saving the sprite area is easy, since we simply use OS_SpriteOp 12.
+ENDPROC
+:
+:
+DEF FNsquash_size(f$)
+$q%=f$
+!code%=q%
+CALL code%+20
+IF !code%=-1 THEN PROCreport($(code%!8))
+:
+REM Interface with the machine code routines.  Return the size of the uncompressed file, or
+REM report an error
+=!code%
+:
+:
+DEF FNsquash_load(f$,adr%)
+SYS "Hourglass_On"
+$q%=f$
+!code%=q%
+code%!4=adr%
+CALL code%+24
+IF !code%=-1 THEN PROCreport($(code%!8))
+SYS "Hourglass_Off"
+:
+REM Interface with the machine code routines.  Load the file into adr%, or report an error.
+=!code%
+:
+:
+DEF FNsquash_save(f$,adr1%,adr2%)
+SYS "Hourglass_On"
+$q%=f$
+!code%=q%
+code%!4=adr1%
+code%!8=adr2%
+CALL code%+28
+IF !code%=-1 THEN PROCreport($(code%!8))
+SYS "Hourglass_Off"
+:
+REM Interface with the machine code routines.  Save the file from adr1% to adr2%, or
+REM report an error.
+=!code%
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Housekeeping routines
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCnew_viewer(w%,i%,pos%)
+LOCAL no%,sub_dir%,addr%,handle%,x_pos%,y_pos%
+no%=FNviewer_number(w%)
+IF no%=-1 THEN ENDPROC
+IF i%<0 THEN ENDPROC
+PROCset_icon_state(w%,i%,0,0,0)
+sub_dir%=windows%(no%,2)!((i%*44)+48)
+IF sub_dir%=-1 THEN ENDPROC
+handle%=FNalready_open(windows%(no%,2)+sub_dir%)
+IF handle%>-1 THEN PROCopen(handle%) : ENDPROC
+!q%=w%
+SYS "Wimp_GetWindowState",,q%
+IF pos%=1 THEN
+ x_pos%=q%!4
+ y_pos%=q%!16
+ELSE
+ x_pos%=q%!4+(12*windows%(no%,7))+20
+ y_pos%=q%!16-20
+ windows%(no%,7)=(windows%(no%,7)+1) MOD 8
+ENDIF
+PROCopen_dir(windows%(no%,2)+sub_dir%,$windows%(no%,3)+"."+$(windows%(no%,2)+(i%*44)+12),windows%(no%,4),x_pos%,y_pos%)
+:
+REM This procedure opens sub-dirs from double-clicks.  We are not sure when this procedure is
+REM called if the window was a viewer, so we check; and if it wasn't, we exit.  Next we check
+REM that an icon was clicked on, and again exit if one was not.  Since the icon will have been
+REM left selected by the Wimp, we deselect it, then we get the sub-dir offset.  If this is -1
+REM there is no sub-dir, so we exit.  Now we know a sub-dir exists, so we check to see if it is
+REM already open.  If it is we re-open it, otherwise we open it afresh.
+REM To calculate the position of the new window, we chech to see if the old one will be closed.
+REM If it will be, we open in the same place, if not, we use an offset.
+ENDPROC
+:
+:
+DEF PROCopen_parent(w%,pos%)
+LOCAL handle%,x_pos%,y_pos%
+IF windows%(w%,2)!4=-1 THEN ENDPROC
+handle%=FNalready_open(windows%(w%,2)-(windows%(w%,2)!4))
+IF handle%>-1 THEN
+ PROCopen(handle%)
+ELSE
+ !q%=windows%(w%,1)
+ SYS "Wimp_GetWindowState",,q%
+ IF pos%=1 THEN
+  x_pos%=q%!4
+  y_pos%=q%!16
+ ELSE
+  x_pos%=q%!4-20
+  y_pos%=q%!16+20
+  windows%(no%,7)=(windows%(no%,7)+1) MOD 8
+ ENDIF
+ PROCopen_dir(windows%(w%,2)-(windows%(w%,2)!4),FNpath($windows%(w%,3)),windows%(w%,4),x_pos%,y_pos%)
+ENDIF
+:
+REM First we check that there is a parent directory, and if there isn't we quit.  Now we check
+REM to see if the window is open.  If it is, we re-open it, else we open it up, at the correct
+REM place.
+ENDPROC
+:
+:
+DEF PROCmenu_open_root(item%)
+LOCAL addr%,rdir_addr%,handle%
+addr%=base_addr%(file_menu_ptr%(item%))
+rdir_addr%=addr%+40
+handle%=FNalready_open(rdir_addr%)
+IF handle%>-1 THEN
+ PROCopen(handle%)
+ELSE
+ PROCopen_dir(rdir_addr%,FNtoken("Index")+"::"+$addr%+".$",addr%,200+(55*opening_cycle%),1000)
+ opening_cycle%=(opening_cycle%+1) MOD 7
+ENDIF
+:
+REM First we find the address of the root directory data, the check to see if a window is open.
+REM If it is, we re-open it, else we create a new directory viewer; opening it in the correct
+REM place in the fresh opening cycle.
+ENDPROC
+:
+:
+DEF FNalready_open(addr%)
+LOCAL loop%
+loop%=0
+WHILE windows%(loop%,2)<>addr% AND loop%<50
+ loop%+=1
+ENDWHILE
+IF loop%>=50 AND windows%(loop%,2)<>addr% THEN =-1
+IF windows%(loop%,0)=FALSE THEN =-1
+:
+REM This function checks to see if a directory structure at a given address has a viewer open
+REM for it.  We take the address, and search the definitions for a match.  If one is found we
+REM return the window handle of the viewer, otherwise we return -1.
+=windows%(loop%,1)
+:
+:
+DEF FNnew_viewer
+LOCAL loop%
+loop%=0
+WHILE windows%(loop%,0)=TRUE AND loop%<50
+ loop%+=1
+ENDWHILE
+IF loop%>=50 AND windows%(loop%,0)=TRUE THEN =-1
+windows%(loop%,0)=TRUE
+:
+REM This function is used to allocate an empty definition block for a new viewer.  It searches
+REM the definitions for an empty block (windows%(loop%,0)=FALSE), and returns the number of the
+REM block.  If one wasn't found, it returns -1 instead.
+=loop%
+:
+:
+DEF FNviewer_number(w%)
+LOCAL loop%
+loop%=0
+WHILE windows%(loop%,1)<>w% AND loop%<50
+ loop%+=1
+ENDWHILE
+IF loop%>=50 AND windows%(loop%,1)<>w% THEN =-1
+IF windows%(loop%,0)=FALSE THEN =-1
+:
+REM This function returns the number of the definition block which belongs to a window with a
+REM given handle.  It searches the blocks and returns the number if a block was found, else it
+REM returns -1.
+=loop%
+:
+:
+DEF PROCmenu_kill_index(item%)
+LOCAL addr%,loop%
+addr%=base_addr%(file_menu_ptr%(item%))
+:
+FOR loop%=0 TO 50
+ IF windows%(loop%,0) AND (windows%(loop%,4)=addr%) THEN PROCkill_viewer(loop%)
+NEXT loop%
+:
+REM This will close all the windows belonging to an index, and release all the memory used.
+REM Find the base address, then go through the open windows, closing any that are open.
+REM PROCkill_viewer will relese the block from the RMA after the last window has closed.  If
+REM do_not_release% is set for the block, the windows will close, and PROCkill_viwer will
+REM deal with the block correctly (it will be released after the search has finished).
+ENDPROC
+:
+:
+DEF PROCmenu_kill_all
+LOCAL loop%,item%
+FOR loop%=0 TO 50
+ IF files_loaded$(loop%)<>"" THEN
+  item%=0
+  WHILE file_menu_ptr%(item%)<>loop%
+   item%+=1
+  ENDWHILE
+  PROCmenu_kill_index(item%)
+ ENDIF
+NEXT loop%
+:
+REM This kills all open files, by calling PROCmenu_kill_index for each loaded file.
+ENDPROC
+:
+:
+DEF PROCkill_viewer(w%)
+LOCAL loop%,flag%
+IF windows%(w%,0)=FALSE THEN ENDPROC
+windows%(w%,0)=FALSE
+PROCheap_release(windows%(w%,3))
+:
+REM First we check that the window is still defined.  If not we exit.  Then we flag the window
+REM as undefined and release the buffer used to store the title.
+REM If the window had icons in it, we...
+:
+IF !windows%(w%,2)>0 THEN
+ FOR loop%=0 TO (!windows%(w%,2))-1
+  IF FNicon_exists(windows%(w%,1),loop%) THEN PROCheap_release(FNvalidation(windows%(w%,1),loop%))
+ NEXT loop%
+ENDIF
+:
+REM For each icon we release the memory used to store the validation string.
+:
+loop%=!windows%(w%,2)
+IF windows%(w%,6)=2 AND !windows%(w%,2)>0 THEN
+ REPEAT
+  !q%=windows%(w%,1)
+  q%!4=loop%
+  SYS "Wimp_GetIconState",,q%
+  IF (q%!24 AND &100)=&100 THEN PROCheap_release(q%!28)
+  loop%+=1
+ UNTIL NOT FNicon_exists(windows%(w%,1),loop%)
+ENDIF
+:
+REM If there was full information on display in the window, then we go through the icons, and
+REM release any memory used for indirection buffers.
+:
+!q%=windows%(w%,1)
+SYS "Wimp_DeleteWindow",,q%
+flag%=(windows%(w%,4)<>do_not_release%)
+FOR loop%=0 TO 50
+ IF windows%(w%,4)=windows%(loop%,4) AND w%<>loop% AND windows%(loop%,0) THEN flag%=FALSE
+NEXT loop%
+IF flag% THEN PROCrelease_slot(windows%(w%,4)) : PROClose_file(windows%(w%,4))
+:
+REM Now we can delete the window itself.  Finally, we must check to see if the index file is
+REM still in use.  If another viewer is open, or if the do_not_release% flag is set for it (for
+REM instance if the file is being searched), then nothing is done; else the RMA space is
+REM released, and the file lost from the list of files loaded.
+ENDPROC
+:
+:
+DEF PROCkill_after(base%)
+LOCAL loop%,flag%
+flag%=TRUE
+FOR loop%=0 TO 50
+ IF windows%(loop%,4)=base% AND windows%(loop%,0) THEN flag%=FALSE
+NEXT loop%
+IF flag% THEN PROCrelease_slot(base%) : PROClose_file(base%)
+:
+REM This is called to close a file after the do_not_release% flag has been set for it.  A check
+REM is made to see if it is used for anything else, then the RMA block is released and the
+REM file forgotten.
+ENDPROC
+:
+:
+DEF PROCdisplay_type(type%,v%)
+LOCAL loop%
+IF type%=-1 THEN ENDPROC
+global_type%=type%
+windows%(v%,6)=type%
+windows%(v%,5)=0
+!q%=windows%(v%,1)
+SYS "Wimp_GetWindowState",,q%
+PROCmove_icons(q%)
+FOR loop%=0 TO 2
+ PROCset_menu_state(disp_menu%,loop%,ABS(windows%(v%,6)=loop%),0)
+NEXT loop%
+:
+REM Before we can set the display mode, we must check that a choice was made, and if not, we
+REM exit.  Now we set the global type to the new value so that subsequent windows use this, set
+REM the value in the window data block for that window, set the window's columns to zero to
+REM force a redraw, then call Wimp_GetWindowState to get a data block and PROCmove_icons to do
+REM the job.  Finally we set the menu ticks correctly.
+ENDPROC
+:
+:
+DEF FNis_file_loaded(name$)
+LOCAL loop%,flag%
+flag%=-1
+FOR loop%=0 TO 50
+ IF files_loaded$(loop%)=name$ THEN flag%=base_addr%(loop%)
+NEXT loop%
+:
+REM Check whether a named file is already loaded.  We return the address in memory, or -1.  If
+REM there are two identical files stored in different locations, this won't spot it...
+=flag%
+:
+:
+DEF PROCadd_file(name$,base%)
+LOCAL loop%
+loop%=0
+WHILE files_loaded$(loop%)<>"" AND loop%<50
+ loop%+=1
+ENDWHILE
+IF loop%>=50 AND files_loaded$(loop%)<>"" THEN PROCmake_error("TooManyFiles")
+files_loaded$(loop%)=name$
+base_addr%(loop%)=base%
+:
+PROCupdate_file_menu
+:
+REM This adds a new file to the loaded list.  First a free space is found in the list: if there
+REM isn't one, then we complain.  The details are then stored.  Then we make a new 'loaded'
+REM menu.
+ENDPROC
+:
+:
+DEF PROClose_file(base%)
+LOCAL loop%
+FOR loop%=0 TO 50
+ IF base%=base_addr%(loop%) THEN
+  files_loaded$(loop%)=""
+  base_addr%(loop%)=0
+ ENDIF
+NEXT loop%
+:
+PROCupdate_file_menu
+:
+REM The opposite of PROCadd_file; this removes the details of a file from the loaded list.
+REM Again we must make a new 'loaded' menu.
+ENDPROC
+:
+:
+DEF PROCselect_all(w%,open%)
+LOCAL loop%
+icons%()=FALSE
+IF windows%(w%,2)>0 THEN
+ FOR loop%=0 TO !windows%(w%,2)-1
+  PROCset_icon_state(windows%(w%,1),loop%,1,0,0)
+  icons%(loop%)=TRUE
+ NEXT loop%
+ENDIF
+IF open% THEN
+ PROCset_main_menu(w%,-1)
+ PROCdisplay_menu(main_menu%,0,0)
+ENDIF
+:
+REM This is called when 'Select all' is selected.  First all the icons are 'deselcted' in the
+REM icons%() list; then we select each icon both with the Wimp and in icons%().  Finally, if the
+REM main menu is still up, we must correct it so that is shows the correct information for the
+REM selection.
+ENDPROC
+:
+:
+DEF PROCclear_all(w%,open%)
+LOCAL loop%
+icons%()=FALSE
+IF windows%(w%,2)>0 THEN
+ FOR loop%=0 TO !windows%(w%,2)-1
+  PROCset_icon_state(windows%(w%,1),loop%,0,0,0)
+ NEXT loop%
+ENDIF
+IF menuup%>-1 AND open% THEN
+ PROCset_main_menu(w%,-1)
+ PROCdisplay_menu(main_menu%,0,0)
+ENDIF
+:
+REM This is called when 'Clear all' is selected.  First all the icons are 'deselcted' in the
+REM icons%() list; then we deselct each icon phisically with the Wimp.  Finally, if the
+REM main menu is still up, we must correct it so that is shows the correct information for the
+REM non-selection.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Counting files
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCstart_local_count(w%)
+LOCAL loop%,to_find$,count%,last%,path$
+PROCgrey_search_opts(TRUE)
+poll_mask%=get_nulls%
+PROCdisplay_menu(-1,0,0)
+i_copy%()=icons%()
+action_type%=2
+abort_action%=FALSE
+pause_action%=FALSE
+found_action%=FALSE
+verbose_action%=global_verbose%
+faster_action%=global_faster%
+close_action%=FALSE
+action_count_files%=0
+action_count_size%=0
+action_time%=TIME
+path$=$windows%(w%,3)
+do_not_release%=windows%(w%,4)
+$progress_title%=FNtoken("Count")
+$FNindirection(progress_wind%,5)=FNtoken("Counted")
+$FNindirection(progress_wind%,6)=FNtoken("Total")
+IF verbose_action% THEN PROCopen(progress_wind%)
+:
+REM First we grey all the menu options which could lead to a 'filer action window'; since we
+REM can only have one.  We mask in the Null poll code, so that the count can happen in the
+REM background.  We take a copy of icons%() so that any subsequent changes to the
+REM selection will not alter this operation.  action_type% is set to mean 'count' so that
+REM Wimp_Poll knows what to do with the icon clicks.  We set the pause and abort flags to FALSE,
+REM zero the counters, and prevent the file we are going to count from being released.  If it
+REM were released, there could be a nasty crash...
+REM Finally, we set up the action window's title and icons, and open it up.
+:
+IF !windows%(w%,2)>0 THEN
+ loop%=0
+ REPEAT
+  PROCprogress_icons("Abort","","","","Pause","Counting","")
+  REPEAT
+   IF pause_action% OR (NOT faster_action%) OR (TIME>action_time%+100) THEN PROCpoll : action_time%=TIME
+   IF pause_action% THEN PROCprogress_icons("Abort","","","","Continue","PausedC","")
+  UNTIL (NOT pause_action%) OR abort_action%
+  IF close_action% THEN PROCclose(progress_wind%) : close_action%=FALSE
+  IF i_copy%(loop%) THEN
+   IF !(windows%(w%,2)+48+(loop%*44))>-1 AND !(windows%(w%,2)+8+(loop%*44))>=&1000 THEN
+    PROCcount_structure(windows%(w%,2)+!(windows%(w%,2)+48+(loop%*44)),to_find$,%1111,path$+"."+$(windows%(w%,2)+12+(loop%*44)),windows%(w%,4))
+   ELSE
+    action_count_files%+=1
+    action_count_size%+=!(windows%(w%,2)+40+(loop%*44))
+    IF (NOT faster_action%) OR (NOT verbose_action%) THEN
+     $FNindirection(progress_wind%,2)=path$+"."
+     $FNindirection(progress_wind%,3)=STR$(action_count_files%)
+     $FNindirection(progress_wind%,4)=STR$(action_count_size%)
+     $FNindirection(progress_wind%,15)=$(windows%(w%,2)+12+(loop%*44))
+     PROCforce_icon_redraw(progress_wind%,2)
+     PROCforce_icon_redraw(progress_wind%,3)
+     PROCforce_icon_redraw(progress_wind%,4)
+     PROCforce_icon_redraw(progress_wind%,15)
+    ENDIF
+   ENDIF
+  ENDIF
+  loop%+=1
+ UNTIL loop%>=!windows%(w%,2) OR abort_action%
+ENDIF
+:
+REM Here we go!  If there are some icons in the window we can get stuck in.  First we check each
+REM object.  If it leads to a sub-dir, we simply call PROCcount_structure to do its stuff;
+REM otherwise we must do it ourselves.  We must increment the files and size counts, then update
+REM the action window, before continuing.  Each time, we must call PROCpoll, so that our count
+REM works in the background.  We must also check for pauses and aborts.
+:
+count%=0
+FOR loop%=0 TO 500
+ IF icons%(loop%) THEN count%+=1 : last%=loop%
+NEXT loop%
+IF count%=1 THEN
+ $FNindirection(progress_wind%,2)=path$+"."
+ $FNindirection(progress_wind%,15)=$(windows%(w%,2)+12+(last%*44))
+ PROCforce_icon_redraw(progress_wind%,2)
+ PROCforce_icon_redraw(progress_wind%,15)
+ELSE
+ $FNindirection(progress_wind%,2)=path$+"."
+ $FNindirection(progress_wind%,15)=FNtoken("Many")
+ PROCforce_icon_redraw(progress_wind%,2)
+ PROCforce_icon_redraw(progress_wind%,15)
+ENDIF
+$FNindirection(progress_wind%,3)=STR$(action_count_files%)
+$FNindirection(progress_wind%,4)=STR$(action_count_size%)
+PROCforce_icon_redraw(progress_wind%,3)
+PROCforce_icon_redraw(progress_wind%,4)
+PROCprogress_icons("","","OK","","","Finished","")
+pause_action%=TRUE
+IF NOT verbose_action% THEN PROCopen(progress_wind%)
+:
+poll_mask%=no_nulls%
+REPEAT
+ PROCpoll
+UNTIL (NOT pause_action%) OR abort_action%
+:
+REM We now do a quick count to see how many objects were counted (confused?).  If it was only
+REM one, we show its name, else we show '<many>'.  Then we set 'OK' icon, and pause until the
+REM user clicks on OK.  The null poll codes can be masked out again.
+:
+PROCkill_after(do_not_release%)
+do_not_release%=-1
+PROCgrey_search_opts(FALSE)
+PROCclose(progress_wind%)
+:
+REM Now the count is over (ahh!).  Since we prevented the file block from being released, we
+REM must now try and release it in case all the windows were closed while we were counting.  If
+REM some are still open, then PROCkill_after won't kill after all.  Then we can safely cancel
+REM the do_not_release% flag.  Finally, we re-enable 'filer action' options, and close the
+REM window.
+ENDPROC
+:
+:
+DEF PROCcount_structure(ptr%,str$,f%,path$,blk%)
+LOCAL loop%,item%,found%
+loop%=0
+IF !ptr%>0 THEN
+ REPEAT
+  REPEAT
+   IF pause_action% OR (NOT faster_action%) OR (TIME>action_time%+100) THEN PROCpoll : action_time%=TIME
+   IF pause_action% THEN PROCprogress_icons("Abort","","","","Continue","PausedC","")
+  UNTIL (NOT pause_action%) OR abort_action%
+  IF close_action% THEN PROCclose(progress_wind%) : close_action%=FALSE
+  item%=ptr%+8+(loop%*44)
+  IF !item%<&1000 THEN
+   action_count_files%+=1
+   action_count_size%+=item%!32
+  ENDIF
+  PROCprogress_icons("Abort","","","","Pause","Counting","")
+  IF (NOT faster_action%) OR (NOT verbose_action%) THEN
+   $FNindirection(progress_wind%,2)=path$+"."
+   $FNindirection(progress_wind%,3)=STR$(action_count_files%)
+   $FNindirection(progress_wind%,4)=STR$(action_count_size%)
+   $FNindirection(progress_wind%,15)=$(item%+4)
+   PROCforce_icon_redraw(progress_wind%,2)
+   PROCforce_icon_redraw(progress_wind%,3)
+   PROCforce_icon_redraw(progress_wind%,4)
+   PROCforce_icon_redraw(progress_wind%,15)
+  ENDIF
+  IF item%!40>-1 AND !item%>=&1000 THEN PROCcount_structure(ptr%+item%!40,str$,f%,path$+"."+$(item%+4),blk%)
+  loop%+=1
+ UNTIL loop%>=!ptr% OR abort_action%
+ENDIF
+:
+REM This code, er, counts structures.  If there are objects to count, we do, otherwise we don't.
+REM Before we count each object, we must poll the Wimp to make the count a background task.
+REM If pause is on, we keep polling.  For each object, we check the type.  If it is a file, it
+REM is counted; otherise we simply recurse (this is how Acorn's filer works: it ignores the
+REM size of dirs and apps - why, who knows?).  If an abort occurs, the code will simply 'drop
+REM out'.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Searching for files
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCsearch_all(root$)
+LOCAL type%,f%,tp$
+$search_for%=FNlower_case($FNindirection(search_wind%,1))
+f%=0
+IF FNicon_selected(search_wind%,10) THEN f%+=1
+IF FNicon_selected(search_wind%,6) THEN f%+=2
+IF FNicon_selected(search_wind%,7) THEN f%+=4
+IF FNicon_selected(search_wind%,8) THEN f%+=8
+IF FNicon_selected(search_wind%,4) THEN
+ type%=-1
+ELSE
+ tp$=$FNindirection(search_wind%,3)
+ type%=FNfile_type_num(tp$)
+ IF type%=-1 THEN PROCreport("BadType") : ENDPROC
+ENDIF
+PROCclose(search_wind%)
+:
+REM When this procedure is called, we are simply passed a path pointing to a structure which
+REM MAY contain index files.  We get a filename to search for, make up the search flags, and
+REM try to get a filetype.  When this has been done, we are ready to roll...
+:
+PROCgrey_search_opts(TRUE)
+SYS "OS_GSTrans",root$,b%,4000
+root$=FNstring(b%)
+:
+poll_mask%=get_nulls%
+$progress_title%=FNtoken("Find")
+$FNindirection(progress_wind%,5)=FNtoken("DChecked")
+$FNindirection(progress_wind%,6)=FNtoken("FChecked")
+action_type%=1
+abort_action%=FALSE
+pause_action%=FALSE
+found_action%=FALSE
+verbose_action%=global_verbose%
+faster_action%=global_faster%
+action_count_files%=0
+action_count_dirs%=0
+action_time%=TIME
+IF verbose_action% THEN PROCopen(progress_wind%)
+PROCsearch_directory(root$,search_for%,f%,type%)
+IF verbose_action% THEN PROCclose(progress_wind%)
+poll_mask%=no_nulls%
+:
+PROCgrey_search_opts(FALSE)
+:
+REM Before we start, we grey out all 'filer action' options, so we can't call them while we are
+REM searching and mask in null poll codes, then we set up and open the window.  action_type%
+REM is set to 1, so that the Wimp_Poll knows we are searching, abort and pause flags are reset,
+REM  counts are zeroed, and we do an OS_GSTrans on the path to expand any system variables,
+REM etc.  Now all we do is call PROCsearch_dirctory, which will do its stuff.  When it has
+REM done, we can close the window and enable all the filer action options again.
+ENDPROC
+:
+:
+DEF PROCsearch_directory(root$,for%,f%,t%)
+LOCAL object%,addr%,file$,size%,read%
+object%=0
+REPEAT
+ SYS "OS_GBPB",12,root$,b%,1,object%,4000,"*" TO ,,,read%,object%
+ IF read%>0 THEN
+  file$=root$+"."+FNstring(b%+24)
+  CASE b%!20 OF
+   WHEN &0E1
+    addr%=FNis_file_loaded(file$)
+    IF addr%=-1 THEN
+     size%=FNsquash_size(file$)
+     IF size%<-1 THEN ENDPROC
+     addr%=FNclaim_slot(size%)
+     IF addr%=-1 THEN object%=-1
+     IF FNsquash_load(file$,addr%)=-1 THEN PROCrelease_slot(addr%) : object%=-1
+     IF addr%>-1 THEN PROCadd_file(file$,addr%)
+    ENDIF
+    PROCpoll
+    PROCpoll
+    IF addr%>-1 THEN
+     do_not_release%=addr%
+     PROCsearch_structure(addr%+40,for%,f%,t%,FNtoken("Index")+"::"+$addr%+".$",addr%," '"+$addr%+"'")
+     PROCkill_after(do_not_release%)
+     do_not_release%=-1
+    ENDIF
+   WHEN &1000,&2000 : PROCsearch_directory(file$,for%,f%,t%)
+  ENDCASE
+ ENDIF
+UNTIL object%=-1 OR abort_action%
+:
+REM We are looking at a real directory on a disc somewhere...  We first set the pointer to the
+REM first object, then enter a REPEAT loop to examine each object.  We do an OS_GBPB for each
+REM object, calculate the filename, and then check the filetype.  If it is an index file, we
+REM check to see if it is already loaded, and if not we claim RMA space and load it.  Now we
+REM a memory address, so we can set the do_not_release% flag; preventing the file being searched
+REM from being released and causing a nasty system crash...  Once we have done this, we can
+REM simply call PROCsaerch_structure, pointing to the root dir's data.  We do not have to worry
+REM about selections, since we are searching the whole file.  Afterwards, we can try and release
+REM memory, and then unset the do_not_release% flag.
+REM If the object was directory or application, we will recurse.
+ENDPROC
+:
+:
+DEF PROCstart_local_search(w%)
+LOCAL loop%,found%,path$
+PROCgrey_search_opts(TRUE)
+poll_mask%=get_nulls%
+PROCdisplay_menu(-1,0,0)
+i_copy%()=icons%()
+action_type%=1
+abort_action%=FALSE
+pause_action%=FALSE
+found_action%=FALSE
+verbose_action%=global_verbose%
+faster_action%=global_faster%
+action_count_files%=0
+action_count_dirs%=0
+action_time%=TIME
+path$=$windows%(w%,3)
+do_not_release%=windows%(w%,4)
+$search_for%=FNlower_case($FNget_ind_menu_text(find_menu%,0))
+$progress_title%=FNtoken("Find")
+$FNindirection(progress_wind%,5)=FNtoken("DChecked")
+$FNindirection(progress_wind%,6)=FNtoken("FChecked")
+IF verbose_action% THEN PROCopen(progress_wind%)
+:
+REM Before we start, grey out all 'filer action' menu options, mask in null polls,
+REM  and then copy icons%(); so that changes in the selection will not affect our search.
+REM action_type% is set to 1 for the Wimp_Poll, we set the pause and abort flags, and
+REM  zero the counters.  We get the path name (from the window title), and set
+REM do_not_release% so that the file can't be lost while we are searching it.
+REM The name we are searching for is collected, the window set up and opened, and here we go!
+:
+IF !windows%(w%,2)>0 THEN
+ loop%=0
+ REPEAT
+  REPEAT
+   IF pause_action% OR (NOT faster_action%) OR (TIME>action_time%+100) THEN  PROCpoll : action_time%=TIME
+   IF pause_action% THEN PROCprogress_icons("Abort","","","","Continue","PausedCh","")
+  UNTIL (NOT pause_action%) OR abort_action%
+  PROCprogress_icons("Abort","","","","Pause","Checking","")
+  IF i_copy%(loop%) AND !(windows%(w%,2)+48+(loop%*44))>-1 THEN
+   PROCsearch_structure(windows%(w%,2)+!(windows%(w%,2)+48+(loop%*44)),search_for%,%1111,-1,path$+"."+$(windows%(w%,2)+12+(loop%*44)),windows%(w%,4),"")
+  ENDIF
+  IF i_copy%(loop%) AND !(windows%(w%,2)+48+(loop%*44))=-1 THEN
+   action_count_files%+=1
+   PROCprogress_icons("Abort","","","","Pause","Checking","")
+   IF (NOT faster_action%) OR (NOT verbose_action%) THEN
+    $FNindirection(progress_wind%,2)=path$+"."
+    $FNindirection(progress_wind%,3)=STR$(action_count_dirs%)
+    $FNindirection(progress_wind%,4)=STR$(action_count_files%)
+    $FNindirection(progress_wind%,15)=$(windows%(w%,2)+12+(loop%*44))
+    PROCforce_icon_redraw(progress_wind%,2)
+    PROCforce_icon_redraw(progress_wind%,3)
+    PROCforce_icon_redraw(progress_wind%,4)
+    PROCforce_icon_redraw(progress_wind%,15)
+   ENDIF
+   found%=FALSE
+   IF FNcompare(search_for%,(windows%(w%,2)+12+(loop%*44))) THEN found%=TRUE
+   IF found% THEN PROCfound(windows%(w%,2),windows%(w%,2)+8+(loop%*44),path$,$(windows%(w%,2)+12+(loop%*44)),windows%(w%,4),"")
+  ENDIF
+  loop%+=1
+ UNTIL loop%>=!windows%(w%,2) OR abort_action%
+ENDIF
+:
+REM If there are any objects in the structure, we can begin.  Point to the first object, and
+REM start the loop.  First we must poll the wimp (so that we search in the background), and keep
+REM on polling if we have paused.  Then we set the window icons, and check the object to see if
+REM it is selected.  If it isn't, we skip it, and go on to the next; otherwise we see what it
+REM is.  If it points to a sub-dir, we can simply call PROCsearch_structure to do its stuff with
+REM all its flags set, otherwise we must do things ourselves.  First we increment the file
+REM count, and update the window, before checking for a match.  If it is a match, we can call
+REM PROCfound, otherwise we can go to the next object.
+:
+PROCkill_after(do_not_release%)
+do_not_release%=-1
+PROCgrey_search_opts(FALSE)
+poll_mask%=no_nulls%
+IF verbose_action% THEN PROCclose(progress_wind%)
+:
+REM It's over.  We try and lose the file (if all the windows have been closed), and unset
+REM do_not_release%.  Then we re-enable 'filer action' options, mask out null poll codes,
+REM and close the window.
+ENDPROC
+:
+:
+DEF PROCsearch_structure(ptr%,str%,f%,type%,path$,blk%,dn$)
+LOCAL loop%,item%,found%
+loop%=0
+action_count_dirs%+=1
+:
+REM We point to the first object, and increment the directory count, before...
+:
+IF !ptr%>0 THEN
+ REPEAT
+  REPEAT
+   IF pause_action% OR (NOT faster_action%) OR (TIME>action_time%+100) THEN PROCpoll : action_time%=TIME
+   IF pause_action% THEN PROCprogress_icons("Abort","","","","Continue","PausedCh",dn$)
+  UNTIL (NOT pause_action%) OR abort_action%
+  item%=ptr%+8+(loop%*44)
+  action_count_files%+=1
+  PROCprogress_icons("Abort","","","","Pause","Checking",dn$)
+  IF (NOT faster_action%) OR (NOT verbose_action%) THEN
+   $FNindirection(progress_wind%,2)=path$+"."
+   $FNindirection(progress_wind%,3)=STR$(action_count_dirs%)
+   $FNindirection(progress_wind%,4)=STR$(action_count_files%)
+   $FNindirection(progress_wind%,15)=$(item%+4)
+   PROCforce_icon_redraw(progress_wind%,2)
+   PROCforce_icon_redraw(progress_wind%,3)
+   PROCforce_icon_redraw(progress_wind%,4)
+   PROCforce_icon_redraw(progress_wind%,15)
+  ENDIF
+  found%=FALSE
+  IF FNcompare(str%,(item%+4)) THEN
+   IF !item%=&2000 AND (f% AND 4)=4 THEN found%=TRUE
+   IF !item%=&1000 AND (f% AND 2)=2 THEN found%=TRUE
+   IF !item%<&1000 AND (f% AND 1)=1 THEN
+    IF type%=-1 THEN
+     found%=TRUE
+    ELSE
+     IF type%=!item% THEN found%=TRUE
+    ENDIF
+   ENDIF
+  ENDIF
+  IF found% THEN PROCfound(ptr%,item%,path$,$(item%+4),blk%,dn$)
+  IF item%!40>-1 AND (!item%<&2000 OR ((f% AND 8)=8))THEN PROCsearch_structure(ptr%+item%!40,str%,f%,type%,path$+"."+$(item%+4),blk%,dn$)
+  loop%+=1
+ UNTIL loop%>=!ptr% OR abort_action%
+ENDIF
+:
+REM If there are any objects in the dir, we examine each one.  First we poll the wimp,
+REM continuing if we are paused.  Then we point to the item's data, increment the file count,
+REM and update the window.  We compare the object with the search criteria, and if we agree,
+REM call PROCfound.  If the object has a sub-dir, then we recurse.
+ENDPROC
+:
+:
+DEF PROCfound(ptr%,itm%,path$,leaf$,blk%,dn$)
+search_parent%=ptr%
+IF itm%!40=-1 THEN search_object%=-1 ELSE search_object%=ptr%+itm%!40
+search_p_name$=path$
+search_o_name$=path$+"."+leaf$
+search_p_block%=blk%
+:
+$FNindirection(progress_wind%,2)=path$+"."
+$FNindirection(progress_wind%,3)=STR$(action_count_dirs%)
+$FNindirection(progress_wind%,4)=STR$(action_count_files%)
+$FNindirection(progress_wind%,15)=leaf$
+PROCforce_icon_redraw(progress_wind%,2)
+PROCforce_icon_redraw(progress_wind%,3)
+PROCforce_icon_redraw(progress_wind%,4)
+PROCforce_icon_redraw(progress_wind%,15)
+:
+pause_action%=TRUE
+found_action%=TRUE
+CASE TRUE OF
+ WHEN !itm%=&1000
+  PROCprogress_icons("Abort","","Open","","Continue","Found","")
+ WHEN !itm%=&2000
+  PROCprogress_icons("Abort","Open","","View","Continue","Found","")
+ WHEN (!itm%<&1000) AND (search_object%>-1)
+  PROCprogress_icons("Abort","Open","","View","Continue","Found","")
+ WHEN (!itm%<&1000) AND (search_object%=-1)
+  PROCprogress_icons("Abort","Run","","View","Continue","Found","")
+  PROCset_icon_state(progress_wind%,8,0,1,0)
+ENDCASE
+:
+IF NOT verbose_action% THEN PROCopen(progress_wind%)
+:
+REM First we set up some details which will be needed if we wish to open up a viewer of the
+REM found object.  Then we pause, and set the window icons, before...
+:
+poll_mask%=no_nulls%
+REPEAT
+ PROCpoll
+UNTIL (NOT pause_action%) OR abort_action% OR quit%
+poll_mask%=get_nulls%
+:
+found_action%=FALSE
+:
+PROCset_icon_state(progress_wind%,8,0,0,1)
+PROCprogress_icons("Abort","","","","Pause","Checking",dn$)
+:
+IF faster_action% THEN
+ $FNindirection(progress_wind%,2)=""
+ $FNindirection(progress_wind%,3)="-"
+ $FNindirection(progress_wind%,4)="-"
+ $FNindirection(progress_wind%,15)=""
+ PROCforce_icon_redraw(progress_wind%,2)
+ PROCforce_icon_redraw(progress_wind%,3)
+ PROCforce_icon_redraw(progress_wind%,4)
+ PROCforce_icon_redraw(progress_wind%,15)
+ENDIF
+IF NOT verbose_action% THEN PROCclose(progress_wind%)
+:
+REM ...we enter a poll loop, until pause or abort are clicked.  Then we reset the icons and
+REM continue.  Note that we don't need null codes while we are waiting for a click.
+ENDPROC
+:
+:
+DEF FNcompare(s1%,s2%)
+!code%=s1%
+code%!4=s2%
+CALL code%+32
+:
+REM Makse a call into the wildcard comparison routine in the code block.  s1% points to a
+REM string in lower case containing wildcards, s2% points to a mixed case string to try
+REM and match.  It will be converted to lower case by the code.
+=(!code%=1)
+:
+:
+DEF PROCgrey_search_opts(g%)
+PROCset_menu_state(ibar_menu%,2,0,g%)
+PROCset_menu_state(file_menu%,4,0,g%)
+PROCset_menu_state(file_menu%,7,0,g%)
+PROCset_icon_state(search_wind%,11,0,g%,0)
+filer_action%=g%
+:
+REM This sets the menu options which can lead to filer action windows, allowing them all to be
+REM greyed out.
+ENDPROC
+:
+:
+DEF PROCprogress_icons(a$,b$,c$,d$,e$,f$,g$)
+f$=FNtoken(f$)
+IF $FNindirection(progress_wind%,1)<>f$+g$ THEN
+ $FNindirection(progress_wind%,1)=f$+g$
+ PROCforce_icon_redraw(progress_wind%,1)
+ENDIF
+a$=FNtoken(a$)
+IF $FNindirection(progress_wind%,7)<>a$ THEN
+ $FNindirection(progress_wind%,7)=a$
+ PROCset_icon_state(progress_wind%,7,0,0,(LEN(a$)=0))
+ PROCforce_icon_redraw(progress_wind%,7)
+ENDIF
+b$=FNtoken(b$)
+IF $FNindirection(progress_wind%,8)<>b$ THEN
+ $FNindirection(progress_wind%,8)=b$
+ PROCset_icon_state(progress_wind%,8,0,0,(LEN(b$)=0))
+ PROCforce_icon_redraw(progress_wind%,8)
+ENDIF
+d$=FNtoken(d$)
+IF $FNindirection(progress_wind%,9)<>d$ THEN
+ $FNindirection(progress_wind%,9)=d$
+ PROCset_icon_state(progress_wind%,9,0,0,(LEN(d$)=0))
+ PROCforce_icon_redraw(progress_wind%,9)
+ENDIF
+e$=FNtoken(e$)
+IF $FNindirection(progress_wind%,10)<>e$ THEN
+ $FNindirection(progress_wind%,10)=e$
+ PROCset_icon_state(progress_wind%,10,0,0,(LEN(e$)=0))
+ PROCforce_icon_redraw(progress_wind%,10)
+ENDIF
+c$=FNtoken(c$)
+IF $FNindirection(progress_wind%,11)<>c$ THEN
+ $FNindirection(progress_wind%,11)=c$
+ PROCset_icon_state(progress_wind%,11,0,0,(LEN(c$)=0))
+ PROCforce_icon_redraw(progress_wind%,11)
+ENDIF
+:
+REM We only redraw the icon if the contents has changed.  Empty icons are deleted.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Specific menu control and information
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCset_main_menu(w%,i%)
+LOCAL count%,last%,ptr%,obj$,long$,loop%,len%
+count%=0
+icons%()=FALSE
+IF !windows%(w%,2)>0 THEN
+ FOR loop%=0 TO !windows%(w%,2)-1
+  IF FNicon_selected(windows%(w%,1),loop%) THEN
+   count%+=1
+   last%=loop%
+   icons%(loop%)=TRUE
+  ENDIF
+  IF loop%=i% THEN icons%(loop%)=TRUE
+ NEXT loop%
+ENDIF
+PROCset_menu_state(main_menu%,3,0,ABS(SUM(icons%())=0))
+PROCset_menu_state(main_menu%,6,0,ABS(windows%(w%,2)!4=-1))
+:
+REM First we 'deselect' all the icons in icons%(), then check each icon and 'reselect' it,
+REM counting the number selected.  If there are no selections, we grey out 'Clear selection',
+REM and if there is no parent, we grey out 'Open parent'.
+:
+FOR loop%=0 TO 2
+ PROCset_menu_state(disp_menu%,loop%,ABS(windows%(w%,6)=loop%),0)
+NEXT loop%
+:
+REM We set the ticks in the display type menu.
+:
+CASE TRUE OF
+ WHEN ((i%>=!windows%(w%,2) OR i%=-1) AND count%=0)
+  PROCset_menu_state(main_menu%,1,0,1)
+  PROCset_menu_state(file_menu%,4,0,1)
+  PROCset_menu_state(file_menu%,6,0,1)
+  PROCset_menu_state(file_menu%,7,0,1)
+  PROCset_menu_state(access_menu%,0,0,1)
+  PROCset_menu_state(access_menu%,1,0,1)
+  PROCset_menu_state(access_menu%,2,0,1)
+  PROCset_menu_state(access_menu%,3,0,1)
+  $FNget_ind_menu_text(main_menu%,1)="File ''"
+  PROCset_menu_width(main_menu%,15)
+  PROCset_menu_title(file_menu%,"File")
+  PROCset_menu_width(file_menu%,8)
+  menu_selection_type%=0
+  menu_selection_file$=""
+ WHEN (count%=1 OR (count%=0 AND (i%>=0 AND i%<!windows%(w%,2))))
+  IF count%=1 THEN i%=last%
+  ptr%=windows%(w%,2)+8+(i%*44)
+  CASE !ptr% OF
+   WHEN &1000 : obj$="Dir." : long$="Directory"   : menu_selection_type%=2
+   WHEN &2000 : obj$="App." : long$="Application" : menu_selection_type%=3
+   OTHERWISE  : obj$="File" : long$="File"        : menu_selection_type%=1
+  ENDCASE
+  PROCset_menu_state(main_menu%,1,0,0)
+  PROCset_menu_state(file_menu%,4,0,filer_action%)
+  PROCset_menu_state(file_menu%,6,0,0)
+  PROCset_menu_state(file_menu%,7,0,filer_action%)
+  IF !ptr%<&1000 THEN
+   PROCset_menu_state(access_menu%,0,(ptr%!28) AND 8,1)
+   PROCset_menu_state(access_menu%,1,((ptr%!28) AND 8)=0,1)
+   PROCset_menu_state(access_menu%,2,(ptr%!28) AND 16,1)
+   PROCset_menu_state(access_menu%,3,((ptr%!28) AND 16)=0 AND ((ptr%!28) AND 1)=1,1)
+  ELSE
+   PROCset_menu_state(access_menu%,0,0,1)
+   PROCset_menu_state(access_menu%,1,0,1)
+   PROCset_menu_state(access_menu%,2,0,1)
+   PROCset_menu_state(access_menu%,3,0,1)
+  ENDIF
+  $FNget_ind_menu_text(main_menu%,1)=obj$+" '"+$(ptr%+4)+"'"
+  len%=15 : IF LEN(obj$+" '"+$(ptr%+4)+"'")>15 THEN len%=LEN(obj$+" '"+$(ptr%+4)+"'")
+  PROCset_menu_width(main_menu%,len%)
+  PROCset_menu_title(file_menu%,long$)
+  len%=8 : IF LEN(long$)>15 THEN len%=LEN(long$)
+  PROCset_menu_width(file_menu%,len%)
+  PROCobject_info(w%,ptr%)
+  menu_selection_file$=$(ptr%+4)
+ WHEN count%>1
+  PROCset_menu_state(main_menu%,1,0,0)
+  PROCset_menu_state(file_menu%,4,0,filer_action%)
+  PROCset_menu_state(file_menu%,6,0,1)
+  PROCset_menu_state(file_menu%,7,0,filer_action%)
+  PROCset_menu_state(access_menu%,0,0,1)
+  PROCset_menu_state(access_menu%,1,0,1)
+  PROCset_menu_state(access_menu%,2,0,1)
+  PROCset_menu_state(access_menu%,3,0,1)
+  $FNget_ind_menu_text(main_menu%,1)="Selection"
+  PROCset_menu_width(main_menu%,15)
+  PROCset_menu_title(file_menu%,"Selection")
+  PROCset_menu_width(file_menu%,9)
+  menu_selection_type%=4
+  menu_selection_file$=""
+ENDCASE
+PROCdisc_info(windows%(w%,4))
+PROCset_menu_state(sopt_menu%,1,global_verbose%,0)
+viewer_up%=w%
+file_up%=i%
+:
+REM There are three distinct ways in which we can set up the menu, these are:
+REM * If a valid icon was not clicked on, and there are no selections, the file options must
+REM   all be greyed out.
+REM * If one icon is selected, or menu was clicked over an icon, we must set up the menu for
+REM   one file.  If a selection is made, this overides where the mouse was clicked.  Then we
+REM   set up the menu texts, calculate menu widths, and fill the object info window.
+REM * If more than one icon was selected, we must grey out the object info option, and make
+REM   the object option of the main menu read 'Selection'.
+REM Finally, we set up the disc info and the options menus, and set two variables to keep track
+REM of where the menu belongs.
+REM The variable menu_selection_type% is set to a valve between 0 and 4 to indicate what object
+REM was selected: 0 = no selection, 1 = file, 2 = directory, 3 = application and 4 = selection.
+REM This is used by the interactive help, amongst others.
+REM menu_selection_file$ contains the name of the object selected, or null.
+ENDPROC
+:
+:
+DEF PROCobject_info(w%,ptr%)
+LOCAL nul%
+!q%=obj_info%
+q%!4=0
+SYS "Wimp_GetIconState",,q%
+SYS "Wimp_DeleteIcon",,q%
+q%!4=q%!8
+q%!8=q%!12
+q%!12=q%!16
+q%!16=q%!20
+q%!20=q%!24
+q%!24=q%!28
+q%!28=(windows%(w%,4)+windows%(w%,4)!36)
+q%!32=q%!36
+SYS "Wimp_CreateIcon",,q%
+:
+REM We can't change the sprite area that an icon uses after it has been defined (why? ask Acorn)
+REM so we must get the icon's details, delete it, change the sprite pointer, and create it
+REM again (phew!). We are now pointing to the new area.
+:
+$FNindirection(obj_info%,5)=$(ptr%+4)
+$FNindirection(obj_info%,4)=STR$(ptr%!32)
+$FNindirection(obj_info%,8)=FNaccess_bytes(ptr%!28)
+CASE !ptr% OF
+ WHEN &1000
+  $FNindirection(obj_info%,0)=FNsprite_name($(ptr%+4),!ptr%,0,ptr%!36,FALSE,nul%)
+  $FNindirection(obj_info%,2)="Directory"
+  !time_b%=ptr%!24
+  time_b%?4=ptr%?20
+  $FNindirection(obj_info%,10)=FNconvert_date(time_b%,"%24:%mi:%se %dy %m3 %ce%yr")
+ WHEN &2000
+  $FNindirection(obj_info%,0)=FNsprite_name($(ptr%+4),!ptr%,0,ptr%!36,FALSE,nul%)
+  $FNindirection(obj_info%,2)="Application"
+  !time_b%=ptr%!24
+  time_b%?4=ptr%?20
+  $FNindirection(obj_info%,10)=FNconvert_date(time_b%,"%24:%mi:%se %dy %m3 %ce%yr")
+ WHEN -1
+  $FNindirection(obj_info%,0)=FNsprite_name($(ptr%+4),!ptr%,0,ptr%!36,FALSE,nul%)
+  $FNindirection(obj_info%,2)="File"
+  $FNindirection(obj_info%,10)=FNhex_address(ptr%!20)+"    "+FNhex_address(ptr%!24)
+ OTHERWISE
+  $FNindirection(obj_info%,0)=FNsprite_name($(ptr%+4),!ptr%,0,ptr%!36,FALSE,nul%)
+  SYS "OS_FSControl",&12,,!ptr% TO ,,!q%,q%!4
+  q%?8=13
+  $FNindirection(obj_info%,2)=$q%+" ("+FNhex_type(!ptr%)+")"
+  !time_b%=ptr%!24
+  time_b%?4=ptr%?20
+  $FNindirection(obj_info%,10)=FNconvert_date(time_b%,"%24:%mi:%se %dy %m3 %ce%yr")
+ENDCASE
+:
+REM The rest of the window is easier!  We enter the file name, the file size, and the access
+REM details.  Then we have to place the file type and date stamp / load & exec addresses.  This
+REM is done using different code for each type group.
+ENDPROC
+:
+:
+DEF PROCdisc_info(p%)
+LOCAL temp%,temp$
+$FNindirection(disc_info%,1)=$p%
+$FNindirection(disc_info%,5)=STR$(p%!20)
+$FNindirection(disc_info%,3)=FNconvert_date(p%+12,"%24:%mi:%se %dy %m3 %ce%yr")
+temp%=p%!24
+temp$=" Bytes"
+IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="K Bytes"
+IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="M Bytes"
+$FNindirection(disc_info%,7)=STR$(temp%)+temp$
+temp%=p%!28
+temp$=" Bytes"
+IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="K Bytes"
+IF temp%>4095 THEN temp%=(temp%+512)/1024 : temp$="M Bytes"
+$FNindirection(disc_info%,9)=STR$(temp%)+temp$
+$FNindirection(disc_info%,11)=FNdisc_format(p%!32)
+:
+REM Disc info is fairly simple.  We can simply insert the disc name, number of files, and index
+REM date into their icons.  Used and free bytes are treated in a similar way.  Disc format is
+REM dealt with in the last block - we don't use this yet.
+ENDPROC
+:
+:
+DEF PROCset_options_menu
+PROCset_menu_state(opts_menu%,0,faster_action%,0)
+PROCset_menu_state(opts_menu%,2,verbose_action%,0)
+PROCset_menu_state(sopt_menu%,1,global_verbose%,0)
+:
+REM Here we simply set the Options menu up, so that it correctly shows the details for the
+REM action window.
+ENDPROC
+:
+DEF PROCupdate_file_menu
+LOCAL loop%,pass%,count%,tmp$,tmp%,width%
+count%=0
+width%=0
+FOR loop%=0 TO 50
+ IF files_loaded$(loop%)<>"" THEN
+  PROCset_menu_text(flst_menu%,count%,$base_addr%(loop%))
+  IF LEN($base_addr%(loop%))>width% THEN width%=LEN($base_addr%(loop%))
+  PROCset_menu_last(flst_menu%,count%,0)
+  file_menu_ptr%(count%)=loop%
+  count%+=1
+ ENDIF
+NEXT loop%
+:
+IF width%>10 THEN width%=10
+PROCset_menu_width(flst_menu%,width%)
+IF count%>0 THEN PROCset_menu_last(flst_menu%,count%-1,1)
+PROCset_menu_state(ibar_menu%,1,0,(count%=0))
+:
+IF count%>1 THEN
+ FOR pass%=0 TO count%-2
+  FOR loop%=0 TO (count%-2)-pass%
+   IF FNget_menu_text(flst_menu%,loop%)>FNget_menu_text(flst_menu%,loop%+1) THEN
+    tmp$=FNget_menu_text(flst_menu%,loop%)
+    PROCset_menu_text(flst_menu%,loop%,FNget_menu_text(flst_menu%,loop%+1))
+    PROCset_menu_text(flst_menu%,loop%+1,tmp$)
+   :
+    tmp%=file_menu_ptr%(loop%)
+    file_menu_ptr%(loop%)=file_menu_ptr%(loop%+1)
+    file_menu_ptr%(loop%+1)=tmp%
+   ENDIF
+  NEXT loop%
+ NEXT pass%
+ENDIF
+:
+REM First make a menu containing all the loaded disc names, then sort it alphabetically.  We
+REM scan files_loaded$() and base_addr%() to get valid pointers, so that we can get the names.
+REM There will only ever by 51 names, so a simple bubble sort is OK (I think..?).
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Miscellaneous processing routines
+: REM ------------------------------------------------------------------------------------------
+:
+:
+DEF FNfile_type(t%)
+LOCAL tp$
+CASE t% OF
+ WHEN &1000 : tp$="Directory"
+ WHEN &2000 : tp$="Application"
+ WHEN -1    : tp$=""
+ OTHERWISE
+  SYS "OS_FSControl",&12,,t% TO ,,!q%,q%!4
+  q%?8=13
+  tp$=$q%
+ENDCASE
+:
+REM This call simply takes a file type number, and returns with the textual name.
+=tp$
+:
+:
+DEF FNdisc_format(val%)
+LOCAL format$
+CASE val% OF
+ WHEN 0  : format$=FNtoken("E")
+ WHEN 1  : format$=FNtoken("F")
+ WHEN 2  : format$=FNtoken("D")
+ WHEN 3  : format$=FNtoken("L")
+ WHEN 4  : format$=FNtoken("M")
+ WHEN 5  : format$=FNtoken("Q")
+ WHEN 6  : format$=FNtoken("N")
+ WHEN 7  : format$=FNtoken("H")
+ WHEN 8  : format$=FNtoken("P")
+ WHEN 9  : format$=FNtoken("T")
+ WHEN 10 : format$=FNtoken("U")
+ WHEN 11 : format$=FNtoken("Y")
+ WHEN 12 : format$=FNtoken("Z")
+ OTHERWISE : format$=FNtoken("UnRecog")
+ENDCASE
+:
+REM This simply returns a textual disc format from the given word, decoding using
+REM an internal format!
+=format$
+:
+:
+DEF FNfile_type_num(s$)
+LOCAL type%, flags%
+SYS "XOS_FSControl",31,s$ TO ,,type% ;flags%
+IF (flags% AND 1) THEN type%=-1
+:
+REM Given a text name, this function simply returns the file type number.
+=type%
+:
+:
+DEF FNhex_type(t%)
+REM This takes a decimal number, and returns a lowercase hex string; a la acorn.
+=FNlower_case(RIGHT$("000"+STR$~t%,3))
+:
+:
+DEF FNhex_address(v%)
+REM Gives an 8 digit hex address, as needed for load and exec addresses.
+=RIGHT$("00000000"+STR$~v%,8)
+:
+:
+DEF FNaccess_bytes(byte%)
+LOCAL s$
+IF (byte% AND 8)  THEN
+ s$+="L"
+ELSE
+ IF (byte% AND 2)  THEN s$+="W"
+ENDIF
+IF (byte% AND 1)  THEN s$+="R"
+s$+="/"
+IF (byte% AND 32) THEN s$+="w"
+IF (byte% AND 16) THEN s$+="r"
+:
+REM This gives the access bytes, for filer windows.
+=s$
+:
+:
+DEF FNlower_case(s$)
+LOCAL loop%,mid$
+FOR loop%=1 TO LEN(s$)
+ mid$=MID$(s$,loop%,1)
+ IF mid$>="A" AND mid$<="Z" THEN MID$(s$,loop%,1)=CHR$(ASC(mid$)+32)
+NEXT loop%
+:
+REM This simply converts all upper case characters to lower case.
+=s$
+:
+:
+DEF PROCclear_file_types
+LOCAL loop%
+FOR loop%=0 TO 1020 STEP 4
+ file_types%!loop%=0
+NEXT loop%
+:
+REM We call this to reset the list of used filetypes when collecting sprites,
+ENDPROC
+:
+:
+DEF PROCset_file_type(type%)
+LOCAL byte%,bit%
+byte%=type% DIV 8
+bit%=type% MOD 8
+file_types%?byte%=(file_types%?byte%) OR (1<<bit%)
+byte%+=512
+file_types%?byte%=(file_types%?byte%) OR (1<<bit%)
+:
+REM Calling this will set the two bits for the given filetype, so that the full size and small
+REM sprites are marked as required.
+ENDPROC
+:
+:
+DEF PROCclear_file_type(type%,sm%)
+LOCAL byte%,bit%
+byte%=type% DIV 8+(sm%*512)
+bit%=type% MOD 8
+file_types%?byte%=(file_types%?byte%) EOR (1<<bit%)
+:
+REM Call this to remove the flag for a given filetype.  This is done when a sprite is found.
+ENDPROC
+:
+:
+DEF FNfile_type_used(type%,sm%)
+LOCAL byte%,bit%
+IF type%<0 OR type%>&FFF THEN =FALSE
+:
+byte%=(type% DIV 8)+(sm%*512)
+bit%=type% MOD 8
+:
+REM This checks to see whether a given filetype sprite is still required.
+=((file_types%?byte%) AND (1<<bit%))<>0
+:
+:
+:
+DEF PROCtransfer_sprite(farea%,tarea%,sp$)
+LOCAL saddr%,taddr%
+SYS "OS_SpriteOp",256+24,farea%,sp$ TO ,,saddr%
+tarea%!4+=1
+taddr%=tarea%+tarea%!12
+tarea%!12+=!saddr%
+IF (taddr%+!saddr%)>(tarea%+!tarea%) THEN PROCmake_error("NoSprRoom")
+SYS "SCL_MemCopy",taddr%,saddr%,!saddr%
+:
+REM The OS does not appear to offer a SpriteOp call to move a sprite from one area to another.
+REM This would be a useful addition, but perhaps I have simply missed it...  Anyway, this is my
+REM method.  We call OS_SpriteOp 24 to get the address of the named sprite in memory.  Next we
+REM increment the sprite count in the new area, find the first word of free space, and then
+REM set this value beyond our new sprite.  Finally, we check to see if we have room to move the
+REM sprite, and then call SCL_MemCopy to copy the data.  Thank you Acorn User for this module...
+ENDPROC
+:
+:
+DEF PROCopen_opts
+LOCAL loop%
+FOR loop%=4 TO 15
+ PROCset_icon_state(opt_panes%(1),loop%,ABS((loop%-4)=index_drive%),0,0)
+NEXT loop%
+CASE index_system$ OF
+ WHEN "ADFS" : PROCset_icon_state(opt_panes%(1),12,1,0,0)
+ WHEN "RAM"  : PROCset_icon_state(opt_panes%(1),13,1,0,0)
+ WHEN "SCSI" : PROCset_icon_state(opt_panes%(1),14,1,0,0)
+ OTHERWISE   : PROCset_icon_state(opt_panes%(1),15,1,0,0)
+               $FNindirection(opt_panes%(1),16)=index_system$
+ENDCASE
+PROCset_icon_state(opt_panes%(1),16,0,ABS(INSTR("ADFSRAMSCSI",index_system$)>0),0)
+PROCset_icon_state(opt_panes%(3),2,ABS(record_apps%),0,0)
+PROCset_icon_state(opt_panes%(3),3,ABS(record_image%),0,0)
+PROCset_icon_state(opt_panes%(2),6,ABS(sprites_files%),0,0)
+PROCset_icon_state(opt_panes%(2),8,ABS(sprites_apps%),0,0)
+PROCset_icon_state(opt_panes%(2),2,ABS(sprites_small%),0,0)
+PROCset_icon_state(opt_panes%(5),2,ABS(drag_path%),0,0)
+PROCset_icon_state(opt_panes%(5),6,ABS(search_for_dirs%),0,0)
+PROCset_icon_state(opt_panes%(5),7,ABS(search_for_apps%),0,0)
+PROCset_icon_state(opt_panes%(5),8,ABS(search_in_apps%),0,0)
+PROCset_icon_state(opt_panes%(5),9,ABS(search_for_files%),0,0)
+PROCset_icon_state(opt_panes%(5),10,ABS(global_verbose%),0,0)
+PROCset_icon_state(opt_panes%(5),11,ABS(global_faster%),0,0)
+$FNindirection(opt_panes%(2),4)=FNtoken("Sp"+STR$(sprites_file%))
+$FNindirection(opt_panes%(5),1)=search_path$
+$FNindirection(opt_panes%(4),3)=STR$(store_size%)
+$FNindirection(opt_panes%(4),6)=STR$(sprite_size%)
+$FNindirection(opt_panes%(4),11)=STR$(store_free_size%)
+$FNindirection(opt_panes%(4),13)=STR$(store_free_percent%)
+$FNindirection(opt_panes%(4),15)=STR$(leave_free%)
+PROCset_icon_state(opt_panes%(4),8,grab_mode%=1,0,0)
+PROCset_icon_state(opt_panes%(4),18,grab_mode%=2,0,0)
+FOR loop%=2 TO 7
+ PROCset_icon_state(opt_panes%(4),loop%,0,grab_mode%=2,0)
+NEXT loop%
+PROCset_icon_state(opt_panes%(4),10,0,grab_mode%=1 OR grab_free_mode%=2,0)
+PROCset_icon_state(opt_panes%(4),11,0,grab_mode%=1 OR grab_free_mode%=2,0)
+PROCset_icon_state(opt_panes%(4),12,0,grab_mode%=1 OR grab_free_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),13,0,grab_mode%=1 OR grab_free_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),14,0,grab_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),15,0,grab_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),16,0,grab_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),9,grab_free_mode%=1,grab_mode%=1,0)
+PROCset_icon_state(opt_panes%(4),17,grab_free_mode%=2,grab_mode%=1,0)
+FOR loop%=2 TO 5
+ PROCset_icon_state(opt_panes%(6),loop%,ABS((loop%-2)=global_type%),0,0)
+NEXT loop%
+PROCopen_opt_pane(opt_pane%)
+temp_spr_file%=sprites_file%
+:
+REM We call this when we want to open the Options window.  First we set the radio icons for the
+REM drive and system, then set the option icons.  Finally, we set the text strings, and open
+REM the windows.
+ENDPROC
+:
+:
+DEF PROCstore_options(save_it%)
+LOCAL loop%,path$,file%
+FOR loop%=4 TO 11
+ IF FNicon_selected(opt_panes%(1),loop%) THEN index_drive%=loop%-4
+NEXT loop%
+CASE TRUE OF
+ WHEN FNicon_selected(opt_panes%(1),12) : index_system$="ADFS"
+ WHEN FNicon_selected(opt_panes%(1),13) : index_system$="RAM"
+ WHEN FNicon_selected(opt_panes%(1),14) : index_system$="SCSI"
+ WHEN FNicon_selected(opt_panes%(1),15) :
+  IF RIGHT$($FNindirection(opt_panes%(1),16))=":" THEN
+   index_system$=LEFT$($FNindirection(opt_panes%(1),16))
+  ELSE
+   index_system$=$FNindirection(opt_panes%(1),16)
+  ENDIF
+ENDCASE
+record_apps%=FNicon_selected(opt_panes%(3),2)
+record_image%=FNicon_selected(opt_panes%(3),3)
+sprites_files%=FNicon_selected(opt_panes%(2),6)
+sprites_apps%=FNicon_selected(opt_panes%(2),8)
+sprites_small%=FNicon_selected(opt_panes%(2),2)
+sprites_file%=temp_spr_file%
+store_size%=VAL($FNindirection(opt_panes%(4),3))
+sprite_size%=VAL($FNindirection(opt_panes%(4),6))
+store_free_size%=VAL($FNindirection(opt_panes%(4),11))
+store_free_percent%=VAL($FNindirection(opt_panes%(4),13))
+leave_free%=VAL($FNindirection(opt_panes%(4),15))
+drag_path%=FNicon_selected(opt_panes%(5),2)
+search_for_dirs%=FNicon_selected(opt_panes%(5),6)
+search_for_apps%=FNicon_selected(opt_panes%(5),7)
+search_in_apps%=FNicon_selected(opt_panes%(5),8)
+search_for_files%=FNicon_selected(opt_panes%(5),9)
+global_verbose%=FNicon_selected(opt_panes%(5),10)
+global_faster%=FNicon_selected(opt_panes%(5),11)
+search_path$=$FNindirection(opt_panes%(5),1)
+IF FNicon_selected(opt_panes%(4),8) THEN grab_mode%=1 ELSE grab_mode%=2
+IF FNicon_selected(opt_panes%(4),9) THEN grab_free_mode%=1 ELSE grab_free_mode%=2
+FOR loop%=2 TO 5
+ IF FNicon_selected(opt_panes%(6),loop%) THEN global_type%=loop%-2
+NEXT loop%
+:
+PROCclose(opt_wind%) : PROCclose(opt_panes%(opt_pane%))
+IF save_it% THEN
+ IF risc_pc% THEN
+  path$="<Choices$Write>.Index"
+  SYS "OS_File",&05,path$ TO file%
+  IF file%=0 THEN SYS "OS_File",&08,path$
+  path$+=".Choices"
+ ELSE
+  path$="<Index$Dir>.Choices"
+ ENDIF
+ out%=OPENOUT(path$)
+ PRINT#out%,index_drive%,index_system$
+ PRINT#out%,record_apps%,record_image%,sprites_files%,sprites_apps%
+ PRINT#out%,sprites_small%,store_size%,sprite_size%,sprites_file%,search_path$
+ PRINT#out%,grab_mode%,grab_free_mode%,store_free_size%,store_free_percent%
+ PRINT#out%,leave_free%,global_verbose%,global_type%,global_order%
+ PRINT#out%,global_faster%,drag_path%,search_for_files%,search_for_dirs%
+ PRINT#out%,search_for_apps%,search_in_apps%
+ CLOSE#out%
+ENDIF
+:
+REM This is called to store any changes in the Options.  We note tha state of the radio icons,
+REM then the condition of the option icons.  Finally we store the text strings.  If we wish to
+REM save_it%, then we do so.
+ENDPROC
+:
+:
+DEF PROCload_options
+LOCAL file%,path$
+file%=0
+IF risc_pc% THEN SYS "OS_File",&05,"Boot:Choices.Index.Choices" TO file%
+IF file%=0 THEN
+ path$="Index:Choices"
+ SYS "OS_File",&05,path$ TO file%
+ELSE
+ path$="Choices:Index.Choices"
+ENDIF
+IF file%=0 THEN
+ index_drive%=0
+ index_system$="ADFS"
+:
+ record_apps%=TRUE
+ record_image%=TRUE
+ sprites_files%=TRUE
+ sprites_apps%=TRUE
+ sprites_small%=TRUE
+ sprites_file%=1
+:
+ grab_mode%=1
+ grab_free_mode%=1
+ store_size%=200
+ sprite_size%=300
+ store_free_size%=200
+ store_free_percent%=40
+ leave_free%=200
+:
+ search_path$="Index:Indexes"
+ drag_path%=TRUE
+ search_for_files%=TRUE
+ search_for_dirs%=TRUE
+ search_for_apps%=TRUE
+ search_in_apps%=TRUE
+:
+ global_verbose%=TRUE
+ global_faster%=FALSE
+ global_type%=0
+ global_order%=0
+ELSE
+ in%=OPENIN(path$)
+ INPUT#in%,index_drive%,index_system$
+ INPUT#in%,record_apps%,record_image%,sprites_files%,sprites_apps%
+ INPUT#in%,sprites_small%,store_size%,sprite_size%,sprites_file%,search_path$
+ INPUT#in%,grab_mode%,grab_free_mode%,store_free_size%,store_free_percent%
+ INPUT#in%,leave_free%,global_verbose%,global_type%,global_order%
+ INPUT#in%,global_faster%,drag_path%,search_for_files%,search_for_dirs%
+ INPUT#in%,search_for_apps%,search_in_apps%
+ CLOSE#in%
+ENDIF
+:
+REM This is called at the start of the program.  We check to see if there is a file in the
+REM !Index application called Choicess.  If there is, we load the details; if not we set the
+REM defaults.
+ENDPROC
+:
+:
+DEF PROCset_search_path
+CASE b%!40 OF
+ WHEN &1000,&2000 : $FNindirection(opt_panes%(5),1)=FNstring(b%+44)
+ WHEN &0E1 : $FNindirection(opt_panes%(5),1)=FNpath(FNstring(b%+44))
+ OTHERWISE : VDU 7
+ENDCASE
+PROCforce_icon_redraw(opt_panes%(5),1)
+IF FNfind_caret(opt_panes%(5),1) THEN PROCend_caret(opt_panes%(5),1)
+:
+REM If an object is dragged to the Options window, we try and set the search path from it.  If
+REM it was an app or a dir, we set this as the new root.  If it was an index file, we set the
+REM parent directory.  If it was none of these, we complain with a beep!
+ENDPROC
+:
+:
+DEF PROCget_system_time(addr%)
+addr%?0 = 3
+SYS "OS_Word",14,addr%
+:
+REM This simply stashes the five-byte system date and time (you know, centisecs from 1900...)
+REM at the address given.
+ENDPROC
+:
+:
+DEF FNconvert_date(addr%,f$)
+LOCAL end%
+$time_format%=f$+CHR$(0)
+SYS "OS_ConvertDateAndTime",addr%,time_string%,64,time_format% TO ,end%
+?end%=13
+:
+REM This returns as a string the time stored at the given address in five-byte format.
+=$time_string%
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Interactive Help Routines
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROChelp(w%,i%)
+LOCAL tok%,t$,opt%
+:
+CASE w% OF
+ WHEN -2             : PROCwindow_help("IB",-1,"",0)
+ WHEN info_wind%     : PROCwindow_help("PI",i%,"",0)
+ WHEN obj_info%      : PROCwindow_help("OI",i%,"",0)
+ WHEN disc_info%     : PROCwindow_help("DI",i%,"",0)
+ WHEN opt_wind%      : IF i%>=5 THEN tok%=i%-4 : i%=5
+                       PROCwindow_help("OP",i%,"",tok%)
+ WHEN opt_panes%(1)  : IF i%>=4 AND i%<=11 THEN tok%=i%-3 : i%=4
+                       IF i%>=12 AND i%<=15 THEN tok%=i%-11 : i%=12
+                       PROCwindow_help("O1",i%,"",tok%)
+ WHEN opt_panes%(2)  : PROCwindow_help("O2",i%,"",0)
+ WHEN opt_panes%(3)  : PROCwindow_help("O3",i%,"",0)
+ WHEN opt_panes%(4)  : PROCwindow_help("O4",i%,"",0)
+ WHEN opt_panes%(5)  : PROCwindow_help("O5",i%,"",0)
+ WHEN opt_panes%(6)  : PROCwindow_help("O6",i%,"",0)
+ WHEN save_wind%     : PROCwindow_help("SI",i%,"",0)
+ WHEN savesp_wind%   : PROCwindow_help("SS",i%,"",0)
+ WHEN search_wind%   : PROCwindow_help("SW",i%,"",0)
+ WHEN progress_wind% :
+ tok%=action_type%
+  CASE action_type% OF
+   WHEN 1 : IF i%=10 THEN tok%=pause_action%+2-2*found_action%
+            PROCwindow_help("FA",i%,"FACHK",tok%)
+   WHEN 2 : PROCwindow_help("FA",i%,"FACNT",tok%)
+  ENDCASE
+ OTHERWISE
+  SYS "Wimp_GetMenuState",1,q%,w%,i%
+  IF !q%>-1 THEN
+   CASE menuup% OF
+    WHEN main_menu% : IF !q%=1 THEN
+                       CASE q%!4 OF
+                        WHEN -1,3,4,6,7 : opt%=menu_selection_type%
+                        OTHERWISE       : opt%=0
+                       ENDCASE
+                      ENDIF
+                      PROCmenu_help("M",!q%,q%!4,q%!8,menu_selection_file$,FNhelp_menu_greyed(!q%,q%!4,q%!8),opt%)
+    WHEN ibar_menu% : IF q%!4>-1 THEN
+                       IF q%!8>-1 THEN t$=FNget_menu_text(flst_menu%,q%!8)
+                      ENDIF
+                      PROCmenu_help("I",!q%,q%!4,q%!8,t$,FNget_menu_grey(ibar_menu%,!q%),0)
+    WHEN spr_menu%  : PROCmenu_help("S",!q%,q%!4,q%!8,"",0,0)
+    WHEN opts_menu% : PROCmenu_help("O",!q%,q%!4,q%!8,"",0,0)
+    OTHERWISE       : PROCwindow_help("DV",i%,"",0)
+   ENDCASE
+  ELSE
+   PROCwindow_help("DV",i%,"",0)
+  ENDIF
+ENDCASE
+ENDPROC
+:
+:
+DEF PROCwindow_help(w$,i%,t1$,tf%)
+LOCAL token$,flags%,s1$,s2$,s3$
+:
+token$="Help"+w$+RIGHT$("00"+STR$(i%),2)
+IF tf%=0 THEN
+ IF FNicon_selected(w%,i%) THEN token$+="T" ELSE token$+="F"
+ELSE
+ token$+=RIGHT$(STR$(tf%))
+ENDIF
+SYS "XMessageTrans_Lookup",message_block%,token$ TO ,,s3$
+token$=LEFT$(token$)
+:
+$a%=""
+IF i%>-1 THEN SYS "XMessageTrans_Lookup",message_block%,token$+"X",a%,256,s3$
+:
+IF t1$<>"" THEN
+ SYS "XMessageTrans_Lookup",message_block%,"Help"+t1$ TO ,,s2$
+ELSE
+ s2$=""
+ENDIF
+:
+SYS "XMessageTrans_Lookup",message_block%,"Help"+w$+"XXX",q%,256,a%,s2$,s3$ TO ;flags%
+IF (flags% AND 1) THEN SYS "MessageTrans_Lookup",message_block%,"NoHelp",q%,256
+:
+PROCsend_help(FNstring(q%))
+ENDPROC
+:
+:
+DEF PROCmenu_help(m$,s1%,s2%,s3%,f$,g%,o%)
+LOCAL token$,s1$
+token$="Help"+m$+RIGHT$("00"+STR$(s1%),2)
+IF s2%>-1 THEN
+ token$+=RIGHT$("00"+STR$(s2%),2)
+ IF s3%>-1 THEN token$+=RIGHT$("00"+STR$(s3%),2)
+ENDIF
+IF g% THEN token$+="G"
+IF o%>0 THEN token$+=STR$(o%)
+:
+SYS "XMessageTrans_Lookup",message_block%,"MenuGrey" TO ,,s1$
+:
+SYS "XMessageTrans_Lookup",message_block%,token$,q%,256,s1$,f$ TO ;flags%
+IF s1%=-1 THEN
+ $q%=""
+ELSE
+ IF (flags% AND 1)THEN SYS "MessageTrans_Lookup",message_block%,"NoHelp",q%,256,token$
+ENDIF
+:
+PROCsend_help(FNstring(q%))
+ENDPROC
+:
+:
+DEF FNhelp_menu_greyed(s1%,s2%,s3%)
+LOCAL grey%
+grey%=FALSE
+CASE s1% OF
+ WHEN 1
+  CASE s2% OF
+   WHEN 4,7  : grey%=filer_action%
+   OTHERWISE : grey%=FNget_menu_grey(main_menu%,s1%)
+  ENDCASE
+ OTHERWISE : grey%=FNget_menu_grey(main_menu%,s1%)
+ENDCASE
+=grey%
+:
+:
+DEF PROCsend_help(help_string$)
+b%!12=b%!8
+b%!16=&503
+$(b%+20)=help_string$+STRING$(4,CHR$(0))
+!b%=24+(LEN(help_string$) AND &FFFFFC)
+SYS "Wimp_SendMessage",17,b%,b%!4
+:
+REM This procedure sends the text to the help application; it assumes that the contents of
+REM b% has not been changed since the request was made.
+ENDPROC
+:
+: REM ------------------------------------------------------------------------------------------
+: REM Wimp Routines
+: REM ------------------------------------------------------------------------------------------
+:
+DEF PROCsave_desktop_boot(file%)
+LOCAL t%
+SYS "OS_GSTrans","<Index$Dir>",q%,255
+BPUT#file%,"Run "+FNstring(q%)
+ENDPROC
+:
+:
+DEF PROCopen_opt_pane(p%)
+LOCAL loop%
+!b%=opt_wind%
+SYS "Wimp_GetWindowState",,b%
+!q%=opt_panes%(p%)
+SYS "Wimp_GetWindowState",,q%
+q%!4=b%!4+260
+q%!8=b%!8+88
+q%!12=b%!12-12
+q%!16=b%!16-12
+q%!28=-1
+SYS "Wimp_OpenWindow",,q%
+b%!28=!q%
+SYS "Wimp_OpenWindow",,b%
+CASE p% OF
+ WHEN 1 : IF FNicon_selected(!q%,15) THEN PROCend_caret(!q%,16) ELSE PROCend_caret(!q%,-1)
+ WHEN 4 : IF FNicon_selected(!q%,8) PROCend_caret(!q%,3) ELSE PROCend_caret(!q%,15)
+ WHEN 5 : PROCend_caret(!q%,1)
+ OTHERWISE : PROCend_caret(!q%,-1)
+ENDCASE
+FOR loop%=5 TO 10
+ PROCset_icon_state(opt_wind%,loop%,p%=(loop%-4),0,0)
+NEXT loop%
+ENDPROC
+:
+DEF PROCmove_opt_pane(db%)
+!q%=opt_panes%(opt_pane%)
+SYS "Wimp_GetWindowState",,q%
+q%!4=db%!4+260
+q%!8=db%!8+88
+q%!12=db%!12-12
+q%!16=db%!16-12
+q%!28=db%!28
+SYS "Wimp_OpenWindow",,q%
+db%!28=!q%
+ENDPROC
+:
+DEF PROCset_icon_string(w%,i%,s$)
+$FNin_addr(w%,i%)=s$
+PROCforce_icon_redraw(w%,i%)
+ENDPROC
+:
+DEF FNicon_exists(!a%,a%!4):SYS "Wimp_GetIconState",,a%:=(a%!24<>&800000)
+:
+DEF FNindirection(!a%,a%!4):SYS "Wimp_GetIconState",,a%:=a%!28
+:
+DEF FNvalidation(!a%,a%!4):SYS "Wimp_GetIconState",,a%:=a%!32
+:
+DEF FNstring(a%):a$="":WHILE ?a%>=32:a$+=CHR$?a%:a%+=1:ENDWHILE:=a$
+:
+DEF FNpath(s$):=LEFT$(s$,LEN(s$)-(LEN(FNleaf(s$))+1))
+:
+DEF PROCopen(!b%)
+SYS "Wimp_GetWindowState",,b%
+b%!28=-1
+SYS "Wimp_OpenWindow",,b%
+ENDPROC
+:
+DEF PROCclose(!b%)
+SYS "Wimp_CloseWindow",,b%
+ENDPROC
+:
+DEF PROCopen_at(whan%,x%,y%)
+LOCAL w%,h%
+!q%=whan%
+SYS "Wimp_GetWindowState",,q%
+w%=q%!12-q%!4
+h%=q%!16-q%!8
+q%!4=x%
+q%!8=y%-h%
+q%!12=x%+w%
+q%!16=y%
+SYS "Wimp_OpenWindow",,q%
+ENDPROC
+:
+DEF PROCopen_menu(!b%)
+LOCAL x%,y%
+SYS "Wimp_GetWindowState",,b%
+x%=640-((b%!12-b%!4)/2)
+y%=512-((b%!8-b%!16)/2)
+SYS "Wimp_CreateMenu",,!b%,x%,y%
+ENDPROC
+:
+DEF PROCforce_icon_redraw(!q%,q%!4)
+SYS "Wimp_GetIconState",,q%
+SYS "Wimp_ForceRedraw",!q%,q%!8,q%!12,q%!16,q%!20
+ENDPROC
+:
+DEF PROCimmediate_icon_redraw(!q%,q%!4)
+SYS "Wimp_GetIconState",,q%
+q%!4=q%!8
+q%!8=q%!12
+q%!12=q%!16
+q%!16=q%!20
+SYS "Wimp_UpdateWindow",,q% TO flag%
+WHILE flag%
+ SYS "Wimp_GetRectangle",,q% TO flag%
+ENDWHILE
+ENDPROC
+:
+DEF PROCredraw_window(whand%)
+!q%=whand%
+SYS "Wimp_GetWindowState",,q%
+SYS "Wimp_ForceRedraw",whand%,q%!20,(q%!24)-(q%!16-q%!8),(q%!20)+(q%!12-q%!4),q%!24
+SYS "Wimp_ForceRedraw",-1,q%!4,q%!16,q%!12+40,q%!16+40
+ENDPROC
+:
+DEF PROCload_menu_block(f$, r%)
+LOCAL p%,ptr%,ptr2%,len%,c%,temp%
+SYS "OS_File",5,f$ TO ,,,,len%
+DIM p% len%
+SYS "OS_File",255,f$,p%
+:
+c%=0
+IF !p%>-1 THEN
+ ptr%=(p%+!p%)
+ REPEAT
+  temp%=!ptr%
+  !ptr%=r%!c%
+  c%+=4
+  IF temp%>-1 THEN ptr%=p%+temp%
+ UNTIL temp%=-1
+ENDIF
+:
+IF p%!4>-1 THEN
+ ptr%=p%+(p%!4)
+ WHILE !ptr%>-1
+  !(p%+!ptr%)=ptr%+4
+  ptr%=(ptr%+(!(p%+!ptr%+8)+7)) AND (NOT 3)
+ ENDWHILE
+ENDIF
+:
+IF p%!8>-1 THEN
+ ptr%=p%+(p%!8)
+ WHILE !ptr%>-1
+  !(p%+!ptr%)=ptr%+8
+  ptr%=(ptr%+!(ptr%+4))
+ ENDWHILE
+ENDIF
+:
+ptr%=p%+20
+c%=0
+REPEAT
+ r%!c%=ptr%
+ ptr2%=ptr%-4
+ IF !ptr2%>-1 THEN
+  temp%=p%+(!ptr2%)
+  WHILE temp%>-1
+   ptr2%=!temp%
+   IF ptr2%>-1 THEN ptr2%+=p%
+   !temp%=ptr%
+   temp%=ptr2%
+  ENDWHILE
+ ENDIF
+ ptr%=!(ptr%-8)
+ IF ptr%>-1 THEN ptr%+=p%
+ c%+=4
+UNTIL ptr%=-1
+ENDPROC
+:
+:
+DEF PROCset_menu_last(menu%,item%,last%)
+LOCAL addr%
+addr%=(menu%+28)+(24*item%)
+!addr%=(((!addr%) OR (1<<7)) EOR (1<<7))
+!addr%=(!addr%) OR (last%<<7)
+ENDPROC
+:
+DEF PROCset_menu_text(menu%,item%,text$)
+LOCAL addr%
+addr%=(menu%+28)+(24*item%)
+$(addr%+12)=LEFT$(text$,10)
+ENDPROC
+:
+DEF FNget_menu_text(menu%,item%)
+LOCAL addr%
+addr%=(menu%+28)+(24*item%)
+=$(addr%+12)
+:
+DEF PROCset_icon_state(whan%,ihan%,sel%,shad%,del%)
+LOCAL eor%,clear%
+eor%=0 :clear%=0
+IF sel% THEN
+clear%+=(1<<21)
+eor%  +=(1<<21)
+ELSE
+clear%+=(1<<21)
+eor%  +=(0<<21)
+ENDIF
+IF shad% THEN
+clear%+=(1<<22)
+eor%  +=(1<<22)
+ELSE
+clear%+=(1<<22)
+eor%  +=(0<<22)
+ENDIF
+IF del% THEN
+clear%+=(1<<23)
+eor%  +=(1<<23)
+ELSE
+clear%+=(1<<23)
+eor%  +=(0<<23)
+ENDIF
+:
+!q%=whan%
+q%!4=ihan%
+q%!8=eor%
+q%!12=clear%
+SYS "Wimp_SetIconState",,q%
+ENDPROC
+:
+DEF FNicon_deleted(whan%,icon%)
+!q%=whan%
+q%!4=icon%
+SYS "Wimp_GetIconState",,q%
+=((q%!24 AND (1<<23))<>0)
+:
+DEF FNicon_selected(whan%,icon%)
+!q%=whan%
+q%!4=icon%
+SYS "Wimp_GetIconState",,q%
+=((q%!24 AND (1<<21))<>0)
+:
+REM >Menus
+:
+DEF PROCset_menu_state(handle%,item%,tick%,shade%)
+LOCAL a%
+a%=handle%+28+(item%*24)+10
+IF shade% THEN?a%=(?a% OR 64) ELSE?a%=(?a% AND 191)
+a%=handle%+28+(item%*24)
+IF tick% THEN?a%=(?a% OR 1) ELSE?a%=(?a% AND 254)
+ENDPROC
+:
+DEF FNget_menu_grey(handle%,item%)
+LOCAL a%
+a%=handle%+28+(item%*24)+10
+=(?a% AND 64)=64
+:
+DEF PROCset_menu_width(handle%,w%)
+handle%!16=(w%+1)*16
+ENDPROC
+:
+DEF PROCset_menu_title(menu%,title$)
+$menu%=title$:menu%?12=7
+ENDPROC
+:
+DEF FNget_ind_menu_text(menu%,item%)
+=!(menu%+28+(item%*24)+12)
+:
+DEF PROCdisplay_bar_menu(menu%,items%,dots%,x%)
+menuup%=menu%
+SYS "Wimp_CreateMenu",,menu%,x%-64,96+(items%*44)+(dots%*24)
+ENDPROC
+:
+DEF PROCdisplay_menu(menu%,x%,y%)
+menuup%=menu%
+SYS "Wimp_CreateMenu",,menu%,x%-64,y%
+ENDPROC
+:
+DEF PROCdisplay_icon_menu(menu%,w%,i%)
+!q%=w%
+SYS "Wimp_GetWindowState",,q%
+q%!100=w%
+q%!104=i%
+SYS "Wimp_GetIconState",,q%+100
+menuup%=menu%
+SYS "Wimp_CreateMenu",,menu%,q%!4+(q%!116-q%!20),q%!16+(q%!120-q%!20)
+ENDPROC
+:
+DEF PROCcreate_icon(wh%,x%,y%,w%,h%,f%,t%,v%,s%)
+!q%=wh%
+q%!4=x%
+q%!8=y%
+q%!12=x%+w%
+q%!16=y%+h%
+q%!20=f%
+q%!24=t%
+q%!28=v%
+q%!32=s%
+SYS "Wimp_CreateIcon",,q%
+ENDPROC
+:
+DEF PROCcreate_std_icon(wh%,x%,y%,w%,h%,f%,t$)
+!q%=wh%
+q%!4=x%
+q%!8=y%
+q%!12=x%+w%
+q%!16=y%+h%
+q%!20=f%
+$(q%+24)=t$
+SYS "Wimp_CreateIcon",,q%
+ENDPROC
+:
+DEF FNicon_bar(task$)
+!q%=-1
+q%!4=0
+q%!8=0
+q%!12=68
+q%!16=69
+q%!20=&3002
+$(q%+24)=task$
+:
+SYS "Wimp_CreateIcon",,q% TO ihandle%
+=ihandle%
+:
+DEF PROCopen_templates(file$)
+SYS "Wimp_OpenTemplate",,file$
+DIM template_name% 12
+ENDPROC
+:
+DEF FNload_template(name$,buff%,ind%,len%)
+$template_name%="            "
+$template_name%=name$
+SYS "Wimp_LoadTemplate",,buff%,ind%,ind%+len%,-1,template_name%,0 TO ,,new%
+=new%
+:
+DEF PROCclose_templates
+SYS "Wimp_CloseTemplate"
+ENDPROC
+:
+DEF FNload_sprites(f$)
+LOCAL size%,area%
+in%=OPENIN(f$)
+size%=EXT#in%
+CLOSE#in%
+size%+=4
+DIM area% size%
+!area%=size% :area%!8=16
+SYS "OS_SpriteOp",&10A,area%,f$
+=area%
+:
+DEF PROCdrag_init
+drag_start%=FNswi("DragASprite_Start")
+drag_stop%=FNswi("DragASprite_Stop")
+SYS "OS_Byte",161,28 TO ,,cmos
+IF (cmos AND 2)=0 drag_start%=-1:drag_stop%=-1
+ENDPROC
+:
+DEF FNswi(swi$)
+SYS "XOS_SWINumberFromString",,swi$ TO swi;flag
+IF (flag AND 1) swi=-1
+=swi
+:
+DEF PROCdrag_box(w%)
+LOCAL ox%,oy%,file$
+!q%=w%
+SYS "Wimp_GetWindowState",,q%
+ox%=q%!4-q%!20
+oy%=q%!16-q%!24
+q%!4=0
+SYS "Wimp_GetIconState",,q%
+q%!4=5
+q%!8=ox%+q%!8
+q%!12=oy%+q%!12
+q%!16=ox%+q%!16
+q%!20=oy%+q%!20
+q%!24=0
+q%!28=0
+q%!32=&7FFFFFFF
+q%!36=&7FFFFFFF
+IF w%=save_wind% THEN file$="file_0e1"
+IF w%=savesp_wind% THEN file$="file_ff9"
+IF drag_start%=-1 THEN
+SYS "Wimp_DragBox",,q%
+ELSE
+SYS drag_start%,%11000101,1,file$,q%+8,q%+24
+ENDIF
+dragged_from%=w%
+ENDPROC
+:
+DEF PROCget_path
+LOCAL file$,type%
+CASE dragged_from% OF
+ WHEN save_wind%
+  file$=FNleaf($FNindirection(save_wind%,1))
+  type%=&0E1
+ WHEN savesp_wind%
+  file$=FNleaf($FNindirection(savesp_wind%,1))
+  type%=&FF9
+ENDCASE
+IF drag_stop%<>-1 SYS drag_stop%
+SYS "Wimp_GetPointerInfo",,q%
+q%!20=q%!12
+q%!24=q%!16
+q%!28=!q%
+q%!32=q%!4
+q%!36=0      : REM FILE SIZE
+!q%=64
+q%!12=0
+q%!16=1
+q%!40=type%
+$(q%+44)=file$+CHR$(0)
+SYS "Wimp_SendMessage",18,q%,q%!20,q%!24
+ENDPROC
+:
+DEF PROCend_caret(w%,i%)
+LOCAL len%
+IF i%>-1 THEN
+ !b%=w% :b%!4=i%
+ SYS "Wimp_GetIconState",,b%
+ len%=LEN($(b%!28))
+ELSE
+ len%=0
+ENDIF
+SYS "Wimp_SetCaretPosition",w%,i%,,,-1,len%
+ENDPROC
+:
+DEF FNfind_caret(w%,i%)
+SYS "Wimp_GetCaretPosition",,q%
+IF i%=-1 THEN q%!4=-1
+=((!q%=w%) AND (q%!4=i%))
+:
+DEF FNicon_shaded(whan%,icon%)
+!q%=whan%
+q%!4=icon%
+SYS "Wimp_GetIconState",,q%
+=((q%!24 AND (1<<22))<>0)
+:
+DEF FNleaf(f$)
+WHILE INSTR(f$,".")
+ f$=MID$(f$,INSTR(f$,".")+1)
+ ENDWHILE
+=f$
+:
+DEF PROCget_size
+size_x%=FNmv(11)<<FNmv(4)
+size_y%=FNmv(12)<<FNmv(5)
+ENDPROC
+:
+DEF FNmv(m%)
+SYS "OS_ReadModeVariable",-1,m% TO ,,m%
+=m%
+:
+DEF PROCreport(m$)
+SYS "Hourglass_Smash"
+!q%=255
+SYS "MessageTrans_Lookup",message_block%,m$,q%+4,252
+SYS "Wimp_ReportError",q%,%10001,FNtoken("Message")+" "+FNtoken("Index") TO ,con%
+ENDPROC
+:
+DEF PROCmake_error(m$)
+LOCAL e$
+SYS "MessageTrans_Lookup",message_block%,m$ TO ,,e$
+ERROR 255,e$
+ENDPROC
+:
+DEF FNtoken(m$)
+LOCAL e$
+IF m$<>"" THEN SYS "MessageTrans_Lookup",message_block%,m$ TO ,,e$ ELSE e$=m$
+=e$
+:
+DEF FNterritory_name
+LOCAL t%
+SYS "Territory_Number" TO t%
+SYS "Territory_NumberToName",t%,q%,256
+=FNstring(q%)
+:
+DEF FNterritory_resources(p$)
+LOCAL f$,t%
+f$=p$+"."+FNterritory_name
+SYS "XOS_File",5,f$ TO t%
+IF t%<2 OR t%>3 THEN f$=p$+".UK"
+=f$+"."
+:
+DEF PROCerror
+SYS "Hourglass_Smash"
+IF scan_store%>-1 THEN PROCrelease_slot(scan_store%) : scan_store%=-1
+!b%=ERR
+IF debug% THEN
+ SYS "MessageTrans_Lookup",message_block%,"Error",b%+4,252,REPORT$,STR$(ERL)
+ SYS "Wimp_ReportError",b%,%11,task_name$ TO ,con%
+ELSE
+ $(b%+4)=REPORT$+CHR$(0)
+ SYS "Wimp_ReportError",b%,%1,task_name$ TO ,con%
+ENDIF
+IF con%=2 THEN PROCclose_down : END
+ENDPROC
+

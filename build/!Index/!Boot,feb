@@ -1,0 +1,6 @@
+| !Boot file for !Index
+|
+IconSprites <Obey$Dir>.!Sprites
+|
+Set File$Type_0E1 Index
+Set Alias$@RunType_0E1 Run <Obey$Dir>.!Run %%*0
