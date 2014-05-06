@@ -56,6 +56,9 @@ BUZIPFILE := index$(shell date "+%Y%m%d").zip
 
 # Build Tools
 
+AS := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*asasm)
+STRIP := $(wildcard $(GCCSDK_INSTALL_CROSSBIN)/*strip)
+
 MKDIR := mkdir
 RM := rm -rf
 CP := cp
@@ -73,6 +76,8 @@ TOKENIZE := $(SFTOOLS_BIN)/tokenize
 
 # Build Flags
 
+ASFLAGS :=
+STRIPFLAGS := -O binary
 ZIPFLAGS := -x "*/.svn/*" -r -, -9
 SRCZIPFLAGS := -x "*/.svn/*" -r -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
@@ -83,6 +88,7 @@ TOKFLAGS := -verbose -crunch EIrW
 # Set up the various build directories.
 
 SRCDIR := src
+OBJDIR := obj
 MENUDIR := menus
 MANUAL := manual
 OUTDIR := build
@@ -93,6 +99,7 @@ OUTDIR := build
 APP := !Index
 UKRES := Resources/UK
 RUNIMAGE := !RunImage,ffb
+CODE := Code,ffd
 MENUS := Menus,ffd
 README := ReadMe,fff
 FINDHELP := !Help,ffb
@@ -109,7 +116,9 @@ READMEHDR := Header
 MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
-SRCS := Pairs.bbt
+SRCS := Index.bbt
+
+OBJS := IndexCode.o
 
 # Build everything, but don't package it for release.
 
@@ -118,7 +127,7 @@ all: application documentation
 
 # Build the application and its supporting binary files.
 
-application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
+application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(CODE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 
 
 # Build the complete !RunImage from the object files.
@@ -127,6 +136,23 @@ SRCS := $(addprefix $(SRCDIR)/, $(SRCS))
 
 $(OUTDIR)/$(APP)/$(RUNIMAGE): $(SRCS)
 	$(TOKENIZE) $(TOKFLAGS) $(firstword $(SRCS)) -link -out $(OUTDIR)/$(APP)/$(RUNIMAGE) -path $(LIBPATHS) -define 'build_date$$=$(BUILD_DATE)' -define 'build_version$$=$(VERSION)'
+
+# Build the complete Code from the object files.
+
+OBJS := $(addprefix $(OBJDIR)/, $(OBJS))
+
+$(OUTDIR)/$(APP)/$(CODE): $(OBJS) $(OBJDIR)
+	$(STRIP) $(STRIPFLAGS) -o $(OUTDIR)/$(APP)/$(CODE) $(OBJS)
+
+# Create a folder to hold the object files.
+
+$(OBJDIR):
+	$(MKDIR) $(OBJDIR)
+
+# Build the object files, and identify their dependencies.
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.s
+	$(AS) $(ASFLAGS) -PreDefine 'Include SETS "$(GCCSDK_INSTALL_ENV)/include"' -o $@ $<
 
 # Build the menus file.
 
