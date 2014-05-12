@@ -311,17 +311,15 @@ keep to convention.
 
 <chapter title="Choices" file="Choices">
 
-The options window contains all the settings that govern how Index works. To
-access it, choose 'Choices...' from the icon bar menu
+The <window>Options</window> window contains all the settings that govern how <cite>Index</cite> works. To access it, choose <menu>Choices...</menu> from the iconbar menu.
 
- IF YOU WISH AT ANY TIME TO RETURN TO THE DEFAULT SETTINGS, SIMPLY DELETE
-  THE Choices FILE FROM WITHIN THE !Index APPLICATION, AND RE-LOAD INDEX.
- ON A RISC PC OR COMPUTER WITH RISC OS 3.5+, YOU MUST ALSO DELETE THE FILE
-      Choices FROM WITHIN !Boot.Choices.Index IF THIS EXISTS.
+<box type="info">
+If you wish at any time to return to the default settings, simply delete the <file>Choices</file>file from within the <file>!Index</file> application, and re-load <cite>Index</cite>.
 
-The window contains various settings that affect the way the program
-operates. It is divided up into several smaller subsections: click on the
-relevant radio icon on the left-hand side to change the options.
+On a RiscPC or other computer with RISC&nbsp;OS&nbsp;3.5 or later, you must also delete the <file>Choices</file> from within <file>!Boot.Choices.Index</file> if this exists.
+</box>
+
+The window contains various settings that affect the way the program operates. It is divided up into several smaller subsections: click on the relevant radio icon on the left-hand side to change the options.
 
 * 'Drive' controls what drive is indexed. Select a system and a drive number
  from the list, to index that drive. The default is ADFS::0. Select
