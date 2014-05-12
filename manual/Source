@@ -1,283 +1,376 @@
+<document title="Index">
+<define name="version" value="0.40">
+<define name="date" value="8 July 2003" length=30 align="right">
+<define name="sprites" value="Sprites">
+
+
+
+
+<literal mode="Strong" file="!Root">
+Index
+#SpriteFile Sprites
+#Sprite 8,0 Logo
+#Align Right
+{f*/:Comprehensive Disc Indexer†}
+Version $$version$$ ($$date$$)†
+#Below
+#Line
+#Align Centre
+{f/:Index} is {f*:Open Source}: please read the <License>
+
+#Indent 2
+#Table Columns 4
+è <Introduction>
+è <Installing Index=>Installation>
+è <Notes on RISC OS 3.6 and RISC OS 4=>NewOS>
+è <Indexing your discs=>Indexing>
+è <Using Indexes=>Use>
+è <Counting & Finding Files=>Count>
+è <User Choices=>Choices>
+è <How Index Works=>How>
+
+è <What Else (and extensive Wish List)?=>Future>
+è <Bugs (or 'Undocumented Features')=>Bugs>
+è <Version History=>History>
+#Endtable
+#Indent
+#Line
+#Align Left
+If you have any comments about {f/:Index}, or would like to report any bugs that you find, you can email me at the address below.
+
+Updates to {f/:Index} and more programs for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
+
+#Align Centre
+© Stephen Fryatt, 1997-2014 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+
+A plain text version of this manual is available <here=>*Filer_Run <Index$HelpText\>>.
+#Align Left
+</literal>
+
+
+
+
+
+
+<literal mode="Text">
 =============================================================================
-Index - Comprehensive Disc Indexer                               Version 1.10
+Index - Comprehensive Disc Indexer                               Version $$version$$
 
-(c) Stephen Fryatt, 1997, 2000                                    22 May 2000
+(C) Stephen Fryatt, 1997-2014                  $$date$$
 =============================================================================
+</literal>
 
 
-License
--------
-
-Index is FREEWARE.  Copyright is held by the author, Stephen Fryatt, 1997.
-
-Index may be copied freely, so long as it remains unaltered with all its files and documentation intact.  All copies should have their Choices file deleted from within the application to ensure that new users receive Index in its default state.
-
-If you wish to distribute Index, please contact me to get my permission.    This is so that I can ensure that you have the latest version available.  Index may not be sold, although Public Domain libraries may charge for the cost of discs.
-
-No guarantee is made as to the suitability or stability of Index for any particular purpose.  No liability can be accepted by the author for any loss or damage caused by the use of Index, even if the author has been notified of the possibility of such loss or damage.
 
 
-Introduction
-------------
 
-Index is an application to catalogue, browse and search collections of floppy discs.  As almost a side effect, it will also catalogue other forms of media: removable drives, CD ROMS and hard drives; though the advantages of this are less as they are fairly simple to search using the Find option in the filer (though Index may be marginally faster).
+<literal mode="HTML">
+<html>
+<head>
+<title>Float</title>
+</head>
 
-The application produces files that contain 'snapshots' of the discs in question, allowing you to browse and search them in the same way as the filer: the only difference being that the files can't then be loaded from the index.
+<body>
+<h1 align="center">Index</h1>
+<p align="center"><b>Comprehensive Disc Indexer</b> - &copy; Stephen Fryatt, 1997-2014<br>
+Version $$version$$ ($$date$$)</p>
 
-Installing Index
-----------------
-
-Index requires RISC OS 3.1 or later.  It can be run off a hard disc or floppy disc.
-
-To install Index on a hard disc, copy the !Index application to a suitable place on your disc.  If you want it to run on startup, Index should be placed in your boot sequence.  On a Risc PC or a machine with the new boot structure installed, this can be done by copying it into the !Boot.Choices.Boot.Tasks directory (shift-double-click on !Boot in the root directory of your hard drive, double-click on the Choices directory that appears, then on the Boot directory, then on the Tasks directory).  On older machines you will have to make your own arrangements, although you will probably have built your own boot sequence anyway.
-
-The search directory (to which the search path points) is initially set up as
-the directory '!Index.Indexes': you may wish to change this and how to do
-this can be found in the 'Choices' section later on.  If you decide to put
-the indexes somewhere else (this is recommended) then remember to delete the
-empty directory which will no longer be needed.  To view the old directory,
-Shift-double-click on the !Index icon to open up the application directory.
+</literal>
 
 
-Notes on RISC OS 3.6 and RISC OS 4
-----------------------------------
-
-Large discs were introduced in RISC OS 3.6; unlimited files and long filenames in RISC OS 4.  Index is aware of both of these, although limitations in the file format mean that there is some functionality missing.
-
-Big discs are handled correctly, with the exception that if the disc size is more than 32 bits Index will report it as 'unknown', along with the free space.  This will not affect any other parts of the index file.
-
-Long file and disc names have been present for a while in utilities such as raFS and X-Files; again these are dealt with OK, but filenames are stored truncated to 15 characters and disc names to 12 characters.
-
-There should be no practical limit to the number of files Index can cope with in a directory.
 
 
-Indexing your discs
--------------------
 
-Before you can use Index to search for your files, you must index your discs.
-To do this is very straightforward.  The software is initially set up to
-index a floppy disc in ADFS: drive :0.  Insert a disc, and click select on
-the Index icon.  The Hourglass will appear, the disc drive will chug, and
-eventually you will be presented with a save box (which will remain on the
-screen whatever you do - until you save the file or click on the close icon,
-of course).
+<chapter title="License" file="License">
 
-The filename provided is complete with a pathname.  The pathname points to
-the directory currently set as the search directory, further information on
-which can be found under 'Choices' below.  The filename is the current disc
-name.  You may wish to change either or both of these - this can be done in
-the usual way, before clicking on OK, or dragging the icon to a directory (a
-real one, not an index).  You won't see the index at this stage - you must
-now load the index as described below.
+<cite>Index</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
 
-Indexing discs is a fairly complex process.  The description here is kept
-short and simple, but it is also worth reading the section 'How Index Works'
-for some more details, especially the tips on keeping indexes small.
+You may obtain a copy of the Licence at <link ref="#url http://joinup.ec.europa.eu/software/page/eupl">http://joinup.ec.europa.eu/software/page/eupl</link>
 
-   THERE IS A BUG IN FILECORE, WHICH CAUSES THE FILER TO CRASH IF TOO MANY
-   DISCS (8 ON OLDER MACHINES, MORE ON NEWER MODELS) ARE KNOWN AT ONCE. TO
-   PREVENT THIS HAPPENING, DISMOUNT YOUR DISCS WHEN YOU HAVE INDEXED THEM.
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an &ldquo;<strong>as is</strong>&rdquo; basis, <strong>without warranties or conditions of any kind</strong>, either express or implied.
+
+See the Licence for the specific language governing permissions and limitations under the Licence.
+
+The source for <cite>Index</cite> can be found alongside this binary download, at <link ref="#url http://www.stevefryatt.org.uk/software">http://www.stevefryatt.org.uk/software</link>
+
+The necessary libraries and build tools can be found at <link ref="#url http://www.stevefryatt.org.uk/software/build">http://www.stevefryatt.org.uk/software/build</link>
+
+</chapter>
 
 
-Using Indexes
--------------
 
-To use an index file, double-click on it or drag it to the Index icon.  The
+
+<chapter title="Introduction" file="Introduction">
+
+<cite>Index is an application to catalogue, browse and search collections of floppy discs. As almost a side effect, it will also catalogue other forms of media: removable drives, CD&nbsp;ROMs and hard drives; though the advantages of this are less as they are fairly simple to search using the Find option in the filer (though <cite>Index</cite> may be marginally faster).
+
+The application produces files that contain &lsquo;snapshots&rsquo; of the discs in question, allowing you to browse and search them in the same way as the filer: the only difference being that the files can&rsquo;t then be loaded from the index.
+
+</chapter>
+
+
+
+
+
+
+<chapter title="Installing Index" file="Installation">
+
+<cite>Index</cite> requires RISC&nbsp;OS&nbsp;3.1 or later. It can be run off a hard disc or floppy disc.
+
+To install <cite>Index</cite> on a hard disc, copy the <file>!Index</file> application to a suitable place on your disc. If you want it to run on startup, <cite>Index</cite> should be placed in your boot sequence. On a RiscPC or a machine with the new boot structure installed, this can be done by copying it into the <file>!Boot.Choices.Boot.Tasks</file> directory (<key>shift</key>-double-click on <file>!Boot</file> in the root directory of your hard drive, double-click on the <file>Choices</file> directory that appears, then on the <file>Boot</file> directory, then on the <file>Tasks</file> directory). On older machines you will have to make your own arrangements, although you will probably have built your own boot sequence anyway.
+
+The search directory (to which the search path points) is initially set up as the directory <file>!Index.Indexes</file>: you may wish to change this and how to do this can be found in the <link ref="Choices">Choices</link> section later on. If you decide to put the indexes somewhere else (this is recommended) then remember to delete the empty directory which will no longer be needed. To view the old directory, <key>shift</key>-double-click on the <file>!Index</file> icon to open up the application directory.
+
+</chapter>
+
+
+
+
+
+
+<chapter title="Notes on RISC OS 3.6 and RISC OS 4" file="NewOS">
+
+Large discs were introduced in RISC&nbsp;OS&nbsp;3.6; unlimited files and long filenames in RISC&nbsp;OS&nbsp;4. <cite>Index</cite> is aware of both of these, although limitations in the file format mean that there is some functionality missing.
+
+Big discs are handled correctly, with the exception that if the disc size is more than 32-bits <cite>Index</cite> will report it as &lsquo;unknown&rsquo;, along with the free space. This will not affect any other parts of the index file.
+
+Long file and disc names have been present for a while in utilities such as <cite>raFS</cite> and <cite>X-Files</cite>; again these are dealt with OK, but filenames are stored truncated to 15 characters and disc names to 12 characters.
+
+There should be no practical limit to the number of files <cite>Index</cite> can cope with in a directory.
+
+</chapter>
+
+
+
+
+
+
+<chapter title="Indexing your discs" file="Indexing">
+
+Before you can use <cite>Index</cite> to search for your files, you must index your discs. To do this is very straightforward. The software is initially set up to index a floppy disc in ADFS: drive :0. Insert a disc, and click select on the <cite>Index</cite> icon. The Hourglass will appear, the disc drive will chug, and eventually you will be presented with a save box (which will remain on the screen whatever you do &ndash; until you save the file or click on the close icon, of course).
+
+The filename provided is complete with a pathname. The pathname points to the directory currently set as the search directory, further information on which can be found under <link ref="Choices">Choices</link> below. The filename is the current disc name. You may wish to change either or both of these &ndash; this can be done in the usual way, before clicking on <icon>OK</icon>, or dragging the icon to a directory (a real one, not an index). You won't see the index at this stage &ndash; you must now load the index as described below.
+
+Indexing discs is a fairly complex process. The description here is kept short and simple, but it is also worth reading the section <link ref="How">How Index Works</link> for some more details, especially the tips on keeping indexes small.
+
+<box type="warning">
+There is a bug in Filecore, which causes the Filer to crash if too many discs (8 on older machines; more on newer models) are known at once. To prevent this happening, dismount your discs when you have indexed them.
+</box>
+
+</chapter>
+
+
+
+
+
+
+<chapter title="Using Indexes" file="Use">
+
+To use an index file, double-click on it or drag it to the Index icon. The
 viewer for the root directory will open, in much the same way as the filer
-opens directories when you click on the disc icons on the icon bar.  Clicking
+opens directories when you click on the disc icons on the icon bar. Clicking
 adjust on the Index icon on the icon bar will open the root directory of the
-current search path.  See the 'Searching & Counting Files' and 'Choices'
+current search path. See the 'Searching & Counting Files' and 'Choices'
 sections for more details.
 
 Indexes appear, and can be used, in much the same way as filer windows: the
 only difference being that you cannot save files to them, or load files from
-them.  Note also that the 'pathnames' all begin with 'Index' (not ADFS, SCSI
-or RAM).  Double-clicking on directories, applications, or image systems,
-will open their sub-directories; you do not need to use shift.  Single clicks
+them. Note also that the 'pathnames' all begin with 'Index' (not ADFS, SCSI
+or RAM). Double-clicking on directories, applications, or image systems,
+will open their sub-directories; you do not need to use shift. Single clicks
 will, as usual, select the object; and multiple groups can be made with
-adjust - just like the filer.  The 'drag-box' feature in the filer has NOT
+adjust - just like the filer. The 'drag-box' feature in the filer has NOT
 been implemented yet.
 
-Clicking menu will open a familiar menu.  The menu is, in fact, an exact copy
-of the standard filer menu, with some of the options (in the Display, Object, and Options menus) greyed out as they are not applicable.  'New
+Clicking menu will open a familiar menu. The menu is, in fact, an exact copy
+of the standard filer menu, with some of the options (in the Display, Object, and Options menus) greyed out as they are not applicable. 'New
 directory' has been replaced totally, and now leads to a 'Disc index' menu;
 this offers options that the filer does not.
 
 The Display menu works in the usual fashion, except that the Sort by...
-options are not available.  The Object menu (which can read any of: File
+options are not available. The Object menu (which can read any of: File
 'xxx'; App. 'xxx'; Dir. 'xxx', or Selection) again works in the usual way;
-but the only options available are 'Count', 'Info', and 'Find'.  Count will
+but the only options available are 'Count', 'Info', and 'Find'. Count will
 count the size of the selected object; Info gives some information about the
 object, and Find will try and find a given object within the selected ones
 (note that these all recurse into directories, applications, and image
-systems).  The usual (strange) rules apply - for example, Count ignores the
+systems). The usual (strange) rules apply - for example, Count ignores the
 size of directories and applications (usually 2K), in the same way that the
 filer does.
 
 'Select all' and 'Clear selection' do exactly as their names suggest (note
 that, if the options menu reads File '', and is greyed out, then 'Clear
-selection' is NOT available, since there is nothing to clear).  'Options'
+selection' is NOT available, since there is nothing to clear). 'Options'
 leads to the usual 'filer action' options, of which only 'Verbose' is
-applicable.  This is explained under the section 'Counting & Finding Files'.
+applicable. This is explained under the section 'Counting & Finding Files'.
 
-'Disc index' leads to the only 'non-filer' menu available.  This menu
-contains three options: 'Info', 'Disc info', and 'Save sprites'.  'Info'
+'Disc index' leads to the only 'non-filer' menu available. This menu
+contains three options: 'Info', 'Disc info', and 'Save sprites'. 'Info'
 leads to the obligatory program information. 'Disc info' leads to a window
-displaying information about the index loaded.  This includes the disc name,
+displaying information about the index loaded. This includes the disc name,
 the number of files (this includes directories and applications), the space
-both free and used, the disc format, and the date the index was made.  'Save
+both free and used, the disc format, and the date the index was made. 'Save
 sprites' will allow all the icon sprites used in the index to be saved out.
 
 'Open parent' is fairly self explanatory.
 
 As with all filer windows, clicking with adjust on the icons will open the
-sub-directory and close the parent.  Adjust double-clicking on a FILE will
-close the window - you have been warned.  Adjust clicking on a close icon
+sub-directory and close the parent. Adjust double-clicking on a FILE will
+close the window - you have been warned. Adjust clicking on a close icon
 will (again as usual) open the parent window.
 
 The 'Indexes' option in the icon-bar menu leads to a menu allowing you to
-open and close indexes.  'Open root' allows the root directory to be opened
+open and close indexes. 'Open root' allows the root directory to be opened
 for any loaded index, it will bring the window to the front if it is already
 open; 'Close index' will close the viewers for a given index, and free the
 memory; 'Close all' will close all the currently open indexes, again freeing
 memory.
 
+</chapter>
 
-Counting & Finding Files
-------------------------
+
+
+
+
+<chapter title="Counting &amp; Finding Files" file="Count">
 
 Index supports these options in the same way as the filer does: by using
-'filer action windows'.  Note, however, that Index only allows one filer
-action window to be active at any one time.  While one is open, the search
+'filer action windows'. Note, however, that Index only allows one filer
+action window to be active at any one time. While one is open, the search
 and count menu options will all be greyed out.
 
 It is possible to count files in the usual way, and to search for them.
 Searching can be done in two ways.
 
-Searching a selection again works in the same way as with the filer.  Make a
+Searching a selection again works in the same way as with the filer. Make a
 selection of the objects that you wish to search, and enter the object name
-into the 'Find file' field.  Wildcards (# match any single character, * match
-any zero or more characters) can be used if required.  Click on the field or
+into the 'Find file' field. Wildcards (# match any single character, * match
+any zero or more characters) can be used if required. Click on the field or
 press return to start the search.
 
 The usual action window will open, containing two options: 'Pause' and
-'Abort'.  Clicking on 'Pause' will pause the search, and subsequently
-clicking on 'Continue' will continue the process.  'Abort' will, obviously,
-abort the search.  The menu over the action window gives the usual options.
+'Abort'. Clicking on 'Pause' will pause the search, and subsequently
+clicking on 'Continue' will continue the process. 'Abort' will, obviously,
+abort the search. The menu over the action window gives the usual options.
 'Faster' will allow the search to work faster as described in the User Guide.
-It will affect the feel of the whole desktop.  When faster is off, the wimp
-is 'polled' each time a file is checked.  This allows the search to continue
+It will affect the feel of the whole desktop. When faster is off, the wimp
+is 'polled' each time a file is checked. This allows the search to continue
 in the background, without appreciably affecting the way the desktop
-operates.  With 'Faster' on, the wimp is only 'polled' once every second.
+operates. With 'Faster' on, the wimp is only 'polled' once every second.
 This will dramatically increase the speed of these operations, but it will
-make other actions in the desktop very sluggish.  Note that one second was
-chosen mainly to allow any clocks to remain up to date.  Turning 'Verbose'
+make other actions in the desktop very sluggish. Note that one second was
+chosen mainly to allow any clocks to remain up to date. Turning 'Verbose'
 off will close the window: opening it only to report a match.
 
 If a match is found, the search will pause, and various options will appear.
 These are much the same as the filer's, with some obvious necessary
-alterations.  For files, 'View' is available: this opens the directory in
-which the file is found.  For directories, 'Open' is available: this opens
-the directory.  Applications have 'Open' and 'View', as do image files.
+alterations. For files, 'View' is available: this opens the directory in
+which the file is found. For directories, 'Open' is available: this opens
+the directory. Applications have 'Open' and 'View', as do image files.
 
 If you wish to continue the search, click on 'Continue'.
 
-The 'Search all...' option is available from the icon bar menu.  You can
+The 'Search all...' option is available from the icon bar menu. You can
 enter the name of an object, and specify a filetype if you wish.
 Again, wildcards (# match any single character, * match any zero or more
-characters) can be used if required.  It is also possible to specify what
+characters) can be used if required. It is also possible to specify what
 type of object (file, directory, application) to search for, and whether to
-search inside applications.  For some discs (such as magazine cover discs,
-for example), you MUST have search apps. on.  When you are ready, click on
-'Go', and the usual action window will open.  The name of the disc being
-searched is shown in this window.  Due to the large number of files to
+search inside applications. For some discs (such as magazine cover discs,
+for example), you MUST have search apps. on. When you are ready, click on
+'Go', and the usual action window will open. The name of the disc being
+searched is shown in this window. Due to the large number of files to
 search, is is best to turn 'Faster' on for this type of search.
 
-The search is carried out along the search path (see 'Choices').  This
+The search is carried out along the search path (see 'Choices'). This
 directory (and any subdirectories and applications) is scanned for index
-files, which will be loaded and searched.  For this reason, it is best to
-save all your indexes in one place.  Since applications are scanned, it is
-possible to give your files pictorial icons.  It is a good idea to group
+files, which will be loaded and searched. For this reason, it is best to
+save all your indexes in one place. Since applications are scanned, it is
+possible to give your files pictorial icons. It is a good idea to group
 index files into directories, such as cover discs in one, application discs
-in another, and so on.  This means that you can search the lot if you have
+in another, and so on. This means that you can search the lot if you have
 to, but can also narrow your searches down (by dragging one of the
 sub-directories to the Choices window or icon bar) if you know roughly where
 to look.
 
 The search path can be changed to within a given directory or application by
-dragging it on to the Index icon on the icon bar.  Applications set the path
+dragging it on to the Index icon on the icon bar. Applications set the path
 to the application directory (opened by shift-double-clicking on the
 application).
 
 Count simply counts all the FILES in the selected objects, returning a number
-of objects and the total space taken up.  This (like the filer) ignores the
-size of directories and applications.  It sounds illogical, but it is best to
+of objects and the total space taken up. This (like the filer) ignores the
+size of directories and applications. It sounds illogical, but it is best to
 keep to convention.
 
+</chapter>
 
-Choices
--------
 
-The options window contains all the settings that govern how Index works.  To
+
+
+
+
+<chapter title="Choices" file="Choices">
+
+The options window contains all the settings that govern how Index works. To
 access it, choose 'Choices...' from the icon bar menu
 
-  IF YOU WISH AT ANY TIME TO RETURN TO THE DEFAULT SETTINGS,  SIMPLY DELETE
-   THE Choices FILE FROM WITHIN THE !Index APPLICATION, AND RE-LOAD INDEX.
-  ON A RISC PC OR COMPUTER WITH RISC OS 3.5+, YOU MUST ALSO DELETE THE FILE
-           Choices FROM WITHIN !Boot.Choices.Index IF THIS EXISTS.
+ IF YOU WISH AT ANY TIME TO RETURN TO THE DEFAULT SETTINGS, SIMPLY DELETE
+  THE Choices FILE FROM WITHIN THE !Index APPLICATION, AND RE-LOAD INDEX.
+ ON A RISC PC OR COMPUTER WITH RISC OS 3.5+, YOU MUST ALSO DELETE THE FILE
+      Choices FROM WITHIN !Boot.Choices.Index IF THIS EXISTS.
 
 The window contains various settings that affect the way the program
-operates.  It is divided up into several smaller subsections: click on the
+operates. It is divided up into several smaller subsections: click on the
 relevant radio icon on the left-hand side to change the options.
 
-* 'Drive' controls what drive is indexed.  Select a system and a drive number
-  from the list, to index that drive.  The default is ADFS::0.  Select
-  'Other' to enter a different filesystem not listed (such as IDEFS:).  Simply
-  type the name into the box.
+* 'Drive' controls what drive is indexed. Select a system and a drive number
+ from the list, to index that drive. The default is ADFS::0. Select
+ 'Other' to enter a different filesystem not listed (such as IDEFS:). Simply
+ type the name into the box.
 
-* 'Sprites' defines what sprites Index will store in the index files.  The
-  options are fairly obvious.  'File sprites' toggles the storage of the
-  filetype sprites (such as file_fff for text files, and so on), 'Application
-  sprites' toggles the sprites used by applications, and 'Small sprites'
-  toggles the storage of the small variants of the above.  The 'Take file'
-  field determines which Sprites file index will try to load from application
-  directories; click on the menu icon and choose a new file from the list.
+* 'Sprites' defines what sprites Index will store in the index files. The
+ options are fairly obvious. 'File sprites' toggles the storage of the
+ filetype sprites (such as file_fff for text files, and so on), 'Application
+ sprites' toggles the sprites used by applications, and 'Small sprites'
+ toggles the storage of the small variants of the above. The 'Take file'
+ field determines which Sprites file index will try to load from application
+ directories; click on the menu icon and choose a new file from the list.
 
-* 'Include' determines which files are actually indexed.   'Application
-  contents' decides whether the contents of applications are indexed, and
-  'Image FS contents' does the same for any image filesystems that are
-  encountered.  Note that the indexing of image systems is also dependent on
-  the parent application being present (eg. DOSFS, ArcFS, etc).
+* 'Include' determines which files are actually indexed. 'Application
+ contents' decides whether the contents of applications are indexed, and
+ 'Image FS contents' does the same for any image filesystems that are
+ encountered. Note that the indexing of image systems is also dependent on
+ the parent application being present (eg. DOSFS, ArcFS, etc).
 
 * 'Memory' controls the amount of space claimed from system to compile the
-  index file.  The 'New file' space is used to build the actual file, while
-  the 'Sprites' space is used to store the sprites as they are taken from the
-  disc.  There are two modes of operation here: 'Grab fixed slot' and 'Grab
-  free memory'.  Grab fixed slot simply grabs the two sizes specified, and
-  complains if it can't get them.  Grab free memory is more 'intelligent',
-  claiming most of the free memory in the machine.  In fact it claims all the
-  free space, minus the amount specified in 'Leave'.  This allows you to use
-  ImageFSs such as ArcFS, without them complaining about too little memory.
-  In practice you will need about 150K of memory left for ArcFS to be happy.
-  The space grabbed can be split between the file and the sprites in two
-  ways:  either use the 'Kb' option, where the amount specified will go to
-  the new file, and the rest to the sprites, or the '%' option, where the
-  percentage of the free memory shown is given to the file and the rest to
-  the sprites.
+ index file. The 'New file' space is used to build the actual file, while
+ the 'Sprites' space is used to store the sprites as they are taken from the
+ disc. There are two modes of operation here: 'Grab fixed slot' and 'Grab
+ free memory'. Grab fixed slot simply grabs the two sizes specified, and
+ complains if it can't get them. Grab free memory is more 'intelligent',
+ claiming most of the free memory in the machine. In fact it claims all the
+ free space, minus the amount specified in 'Leave'. This allows you to use
+ ImageFSs such as ArcFS, without them complaining about too little memory.
+ In practice you will need about 150K of memory left for ArcFS to be happy.
+ The space grabbed can be split between the file and the sprites in two
+ ways: either use the 'Kb' option, where the amount specified will go to
+ the new file, and the rest to the sprites, or the '%' option, where the
+ percentage of the free memory shown is given to the file and the rest to
+ the sprites.
 
-  For a large disc - such as a hard disc - it may  be necessary to extend
-  these values.  Note that the file area must also hold all the final
-  sprites, while the sprites area must hold ALL the icon sprites (held in
-  files such as !Sprites) on the disc indexed - this can be a LOT of memory.
+ For a large disc - such as a hard disc - it may be necessary to extend
+ these values. Note that the file area must also hold all the final
+ sprites, while the sprites area must hold ALL the icon sprites (held in
+ files such as !Sprites) on the disc indexed - this can be a LOT of memory.
 
-* The next section is 'Search'.  'Path' simply gives the search routines a
-  path to search along.  Either type in a name, or drag a directory or an
-  index file to the icon.  If you drag a directory, than that directory will
-  be the new root.  If you drag an index file, then the directory it is in
-  will be the root.  The default path is '<Index$Dir>.Indexes'.  You can
-  either use the directory 'Indexes' within !Index, or choose your own
-  location.  The latter option is probably best: my directory structure looks
-  as follows.
+* The next section is 'Search'. 'Path' simply gives the search routines a
+ path to search along. Either type in a name, or drag a directory or an
+ index file to the icon. If you drag a directory, than that directory will
+ be the new root. If you drag an index file, then the directory it is in
+ will be the root. The default path is '<Index$Dir>.Indexes'. You can
+ either use the directory 'Indexes' within !Index, or choose your own
+ location. The latter option is probably best: my directory structure looks
+ as follows.
 
      ADFS::HardDisc4.$.DiscIndex -- !Index
                                  |
@@ -291,96 +384,100 @@ relevant radio icon on the left-hand side to change the options.
                                                          |
                                                          -- RiscUser
 
-  The search path for this would be 'ADFS::HardDisc4.$.DiscIndex.Indexes'.
-  Index will search within each of the subdirectories 'CoverDiscs',
-  'WorkDiscs' and 'Magazines' automatically, including the three magazine
-  directories as well.  The search can be narrowed if necessary by dragging
-  any one of the subdirectories to the path icon.
+ The search path for this would be 'ADFS::HardDisc4.$.DiscIndex.Indexes'.
+ Index will search within each of the subdirectories 'CoverDiscs',
+ 'WorkDiscs' and 'Magazines' automatically, including the three magazine
+ directories as well. The search can be narrowed if necessary by dragging
+ any one of the subdirectories to the path icon.
 
-  Selecting 'Change from icon bar' will allow the search path to be changed
-  by dragging directories or applications to the Index icon.
+ Selecting 'Change from icon bar' will allow the search path to be changed
+ by dragging directories or applications to the Index icon.
 
-  The 'Options' section allows the various searching options to be set up in
-  advance.  'Files', 'Dirs.', 'Apps.' and 'Search Apps.' relate to the
-  contents of the Search All window, while 'Verbose' and 'Faster' are options
-  that relate to the 'Filer Action' window.  The state of 'Verbose' in the
-  filer-action menu will be reflected here; the other options will not be
-  reflected.
+ The 'Options' section allows the various searching options to be set up in
+ advance. 'Files', 'Dirs.', 'Apps.' and 'Search Apps.' relate to the
+ contents of the Search All window, while 'Verbose' and 'Faster' are options
+ that relate to the 'Filer Action' window. The state of 'Verbose' in the
+ filer-action menu will be reflected here; the other options will not be
+ reflected.
 
 * Finally, 'Display' gives you the chance to specify what type of filer
-  display is used in the windows.  The three types available are the standard
-  Acorn offerings...
+ display is used in the windows. The three types available are the standard
+ Acorn offerings...
 
 Click on 'OK' to set the new choices, or 'Cancel' to forget any changes.
 Clicking on 'Save' will save the choices in a new file called 'Choices'.
 This file will also contain the search options (verbose), and the display
-options.  To restore the defaults, simply delete this file and re-load Index.
+options. To restore the defaults, simply delete this file and re-load Index.
 
 Under Risc OS 3.5+, Index will store the choices within a directory called
-Index inside !Boot.Choices.  This is in line with the new operating system.
+Index inside !Boot.Choices. This is in line with the new operating system.
 When trying to load the choices, Index will first look here for a file called
 Choices, and then, if this does not exist, for the file <Index$Dir>.Choices.
 Only if NEITHER file can be found will the default options be used.
 
+<chapter>
 
-How Index Works
----------------
+
+
+
+
+<chapter title="How Index Works" file="How">
 
 Index splits the memory it uses into two parts: it has a 45K 'heap' within
 its own workspace, and an extendible heap made by changing the size of its
 WimpSlot. The heap is used for three things: storing sprite names and
 title bars for the viewers, storing the date stamp information for the
 full-info display, and workspace when compressing and uncompressing index
-files (see below).  For these uses, 45K is usually adequate, except perhaps
-when there are too many windows open.  If memory runs out, you will simply be
+files (see below). For these uses, 45K is usually adequate, except perhaps
+when there are too many windows open. If memory runs out, you will simply be
 warned.
 
 The extendible heap is used for storing the actual index files as they are
-loaded from disc.  The size of the areas grabbed from the free pool are not
+loaded from disc. The size of the areas grabbed from the free pool are not
 the same as the size of the files, since the files are decompressed as they
 are loaded into memory; and often occupy about twice the space used on disc.
-This heap is also used for compiling new indexes.  An area of the size
+This heap is also used for compiling new indexes. An area of the size
 defined in the Choices is grabbed, and into this the new file is compiled.
 Index continually tries to free up memory, checking each time a viewer is
-closed.  In this way, memory usage is kept at a minimum.
+closed. In this way, memory usage is kept at a minimum.
 
 Index files are squashed using LZW compression by Acorn's Squash module
-before they are saved.  This is very effective, and can often reduce the file
-size by 50%.  Since this is the same as the Squash application supplied with
+before they are saved. This is very effective, and can often reduce the file
+size by 50%. Since this is the same as the Squash application supplied with
 your computer, this does have the unfortunate side effect that using Squash
 on the Index files will have no effect at all.
 
-For some discs, Index files can grow quite large.  The largest file that I
-have come across so far was 68K uncompressed, or 33K when saved.  This is
+For some discs, Index files can grow quite large. The largest file that I
+have come across so far was 68K uncompressed, or 33K when saved. This is
 mainly due to the sprites that are stored within the file; in this example
-they came to 51K.  For this reason, it is possible to control what is stored.
+they came to 51K. For this reason, it is possible to control what is stored.
 
 A quick reduction in file size can be claimed at little cost by not storing
-the small icon sprites.  However, this does not have much effect, since small
+the small icon sprites. However, this does not have much effect, since small
 sprites only take up a quarter of the space occupied by their larger cousins.
 The only options now are, unfortunately, to ignore file or application
-sprites.  Application sprites are possibly the most effective, since every
-application has its own unique icons.  Note that if your disc contains a lot
+sprites. Application sprites are possibly the most effective, since every
+application has its own unique icons. Note that if your disc contains a lot
 of files saved as applications (old style Impression files, Masterfile files,
 etc), then ignoring application sprites is particularly effective since EACH
-FILE stores its own UNIQUE SET OF SPRITES.  Switching to use lower resolution
+FILE stores its own UNIQUE SET OF SPRITES. Switching to use lower resolution
 sprites (eg. !Sprites rather than !Sprites22) may also save some space.
 
 Not indexing the contents of applications may also be a good move, except
 that some discs (especially magazine cover discs) use applications to give
-their directories icons.  Not storing the the contents of applications will
+their directories icons. Not storing the the contents of applications will
 therefore not index these sorts of discs.
 
 Ignoring the contents of image files does not usually give very great space
-savings and may not be that useful in practice.  Again, most magazines use
+savings and may not be that useful in practice. Again, most magazines use
 compression on their cover discs, so image files must be on to index these.
 
-The choice of !Sprites file is not as easy as it looks.  Index can collect
+The choice of !Sprites file is not as easy as it looks. Index can collect
 the correct file from application directories, so assuming that application
 authors follow the convention (some don't, including myself until I decided
 to do things correctly... Index version 1.05ﬂ in fact) then the sprites
-collected will be OK.  This means that all indexed applications will have the
-correct res sprites, but files are more hit and miss.  Index also searches
+collected will be OK. This means that all indexed applications will have the
+correct res sprites, but files are more hit and miss. Index also searches
 the Wimp sprite pools for these icons; if the Wimp is using hi-res sprites it
 will not store lo-res ones at all and so certain file icons (unless they were
 stored on the disc indexed and were NOT in the ROM and RAM areas) will have
@@ -388,65 +485,68 @@ the resolution that the Wimp stored.
 
 Index does not store the textual filetype aliases (such as 'Text' for type
 &FFF, or 'Absolute' for type &FF8), but instead asks RISC OS for them each
-time it needs them.  Although this saves 8 bytes per file indexed, it does
+time it needs them. Although this saves 8 bytes per file indexed, it does
 mean that, if you index a disc containing files for an application that you
 own (such as Impression, for example), and give the index to someone who does
-not, then they will only get the unhelpful numerical filetype displayed.  The
+not, then they will only get the unhelpful numerical filetype displayed. The
 spites can often give a clue as to the application, however.
 
 For more details about Index, such as the file format, read the file
 TechDetail which can be found in the !Index application directory.
 
+</chapter>
 
 
-What Else (an extensive Wish List)?
------------------------------------
+
+
+
+<chapter title="What Else (an extensive Wish List)?" file="Future">
 
 There are many things that I would like to add to Index, and some are listed
-below.  They range from the 'when I next have the time' to the 'wouldn't it
+below. They range from the 'when I next have the time' to the 'wouldn't it
 be a good idea if...?'.
 
-* Implement the Sort by... option in the display menu.  This should be easy,
-  except that it would require an extra word for each directory in the file,
-  I think?  If I find another way, I will implement it.  The problem is in
-  the way in which the data is stored (ie. I didn't think ahead when I
-  initially designed the file format...).
+* Implement the Sort by... option in the display menu. This should be easy,
+ except that it would require an extra word for each directory in the file,
+ I think? If I find another way, I will implement it. The problem is in
+ the way in which the data is stored (ie. I didn't think ahead when I
+ initially designed the file format...).
 
 * Implement the 'drag boxes' found in RISC OS 3+, which allow quick multiple
-  selections to be made in filer windows.
+ selections to be made in filer windows.
 
 * Full info windows should recognise the mouse right across their width, not
-  just over the filename and icon.  This might be tricky to implement.  They
-  should also use more columns in wide screen modes, but I only found this
-  out when I got a decent monitor :-)
+ just over the filename and icon. This might be tricky to implement. They
+ should also use more columns in wide screen modes, but I only found this
+ out when I got a decent monitor :-)
 
 * Allow multiple sprite pointers into index windows, so that Wimp sprites
-  such as directories are not stored within Index files.
+ such as directories are not stored within Index files.
 
 * Allow the user to specify which image files are not indexed (a sort of
-  exclude list).  This might (or it might not) get around the ArcFS/Archive
-  feature (see below).
+ exclude list). This might (or it might not) get around the ArcFS/Archive
+ feature (see below).
 
 * Implement the 'correct' identification of disc format (using
-  Service_IdentifyDisc &69) instead of the present kludge.
+ Service_IdentifyDisc &69) instead of the present kludge.
 
 * Use the iconise protocol to provide different iconised window icons for
-  index directories and other Index windows.  At the moment they all look the
-  same...
+ index directories and other Index windows. At the moment they all look the
+ same...
 
-* Code the search routines in assembler to speed them up.  The problem is
-  that this would mean either coding most of Index in assembler (the search
-  routines call the main Wimp Poll routine) or re-writing the search routines
-  to work more 'legally'.  The latter might be hard due to their recursive
-  nature.
+* Code the search routines in assembler to speed them up. The problem is
+ that this would mean either coding most of Index in assembler (the search
+ routines call the main Wimp Poll routine) or re-writing the search routines
+ to work more 'legally'. The latter might be hard due to their recursive
+ nature.
 
 * Make the preferences window respond correctly to Return.
 
 * Use Dynamic Areas to store some of the shifting data on Risc OS 3.5 or
-  greater.
+ greater.
 
 * Adjust clicking on the close icon of a root directory should open the filer
-  window where the index was stored.
+ window where the index was stored.
 
 Index supports the RISC OS 3 Territory Manager: this means that if your
 computer is set up for a country other than the UK you can have all the
@@ -461,157 +561,165 @@ translate the Wimp menus. I can supply this on request and then compile a
 foreign version (one day I may get around to converting my menu builder to
 make use of MessageTrans_MakeMenus - I didn't get the PRMs soon enough ;-).
 
+</chapter>
 
-Bugs (or 'Undocumented Features')
----------------------------------
+
+
+
+
+<chapter title="Bugs (or 'Undocumented Features')" title="Bugs">
 
 The following bugs are known to be in the current version of Index:
 
 * It is possible to crash Index (Address Exceptions, Aborts, etc...) by
-  trying to load an index when doing a global search.  I think (read 'I
-  hope'...) that this is simply due to Index trying to load two different
-  files at the same time, but I don't know and haven't tracked it down yet.
-  This feature hasn't appeared anywhere else, as yet...
+ trying to load an index when doing a global search. I think (read 'I
+ hope'...) that this is simply due to Index trying to load two different
+ files at the same time, but I don't know and haven't tracked it down yet.
+ This feature hasn't appeared anywhere else, as yet...
 
 * Indexing a disc with ArcFS, which contains Sparkives which ArcFS can't
-  handle (eg. a certain magazine's July 1996 cover disc) will cause the
-  indexing to stop with an error from ArcFS.  I can't see a way around this
-  (suggestions very welcome) apart from changing the filetype of the
-  offending image files, but this can't be done using Read Only ArcFS.
-  The option to ignore &DDC Archives in ArcFS doesn't work in my version...
-  Any suggestions on how to work around this would be gratefully received.
-  The problem is that ArcFS gets in on the OS_GBPB call, and tries to do its
-  stuff; if it can't understand the archive it generates an error and OS_GBPB
-  fails.  This means that there is no way that the files in that directory
-  can be read (unless I recode the whole scan routine, and even then it may
-  not work since I still need to read the files).
+ handle (eg. a certain magazine's July 1996 cover disc) will cause the
+ indexing to stop with an error from ArcFS. I can't see a way around this
+ (suggestions very welcome) apart from changing the filetype of the
+ offending image files, but this can't be done using Read Only ArcFS.
+ The option to ignore &DDC Archives in ArcFS doesn't work in my version...
+ Any suggestions on how to work around this would be gratefully received.
+ The problem is that ArcFS gets in on the OS_GBPB call, and tries to do its
+ stuff; if it can't understand the archive it generates an error and OS_GBPB
+ fails. This means that there is no way that the files in that directory
+ can be read (unless I recode the whole scan routine, and even then it may
+ not work since I still need to read the files).
 
 * There is an intermittent bug (feature?) which causes the 'Abort' icon in
-  the filer-action window to fail.  The search or count may continue for an
-  undetermined time, instead of the window closing as required.  If 'Quit' is
-  chosen from the icon-bar menu when a search or count is in progress, the
-  same effect may be observed.  I can't see what is wrong with the code
-  though...
+ the filer-action window to fail. The search or count may continue for an
+ undetermined time, instead of the window closing as required. If 'Quit' is
+ chosen from the icon-bar menu when a search or count is in progress, the
+ same effect may be observed. I can't see what is wrong with the code
+ though...
 
-* Windows iconised onto the pinboard remain in place after Index is quit.  If
-  the program is then reloaded and the iconised window is opened, nasty
-  things happen...  I'm not sure if this is my fault - I thought that the
-  pinboard removed iconised windows when they were deleted.  However, it
-  could well be that Index is not doing something that it should.
+* Windows iconised onto the pinboard remain in place after Index is quit. If
+ the program is then reloaded and the iconised window is opened, nasty
+ things happen... I'm not sure if this is my fault - I thought that the
+ pinboard removed iconised windows when they were deleted. However, it
+ could well be that Index is not doing something that it should.
 
 * If a new file is loaded in when there are already too many viewers on
-  screen, the new file will load but nothing else will appear to happen
-  (apart from the error).  Worse still, the file will take up memory, but
-  will refuse to close from the icon bar menu.  It is possible to close these
-  files by freeing up some viewers and then opening the root directories
-  using the icon bar menu before closing the indexes.  Even 'close all' will
-  have no effect on its own...
+ screen, the new file will load but nothing else will appear to happen
+ (apart from the error). Worse still, the file will take up memory, but
+ will refuse to close from the icon bar menu. It is possible to close these
+ files by freeing up some viewers and then opening the root directories
+ using the icon bar menu before closing the indexes. Even 'close all' will
+ have no effect on its own...
 
 * It appears that there is a small problem if errors occur while index is
-  trying to save an index (such as if the disc or directory is full).  The
-  savebox stays open, but memory is corrupted causing the usual Address
-  exception and subsequent trashing of the internal heap when the file is
-  finally saved.  Er, quit and start Index again... sorry :-(
+ trying to save an index (such as if the disc or directory is full). The
+ savebox stays open, but memory is corrupted causing the usual Address
+ exception and subsequent trashing of the internal heap when the file is
+ finally saved. Er, quit and start Index again... sorry :-(
 
 I am currently working to try and fix these problems, although it does
-depend on if I have time (and if I am able) to find them.  If any other
+depend on if I have time (and if I am able) to find them. If any other
 mistakes do come to light, I would be very grateful if you could contact me,
-so that I can try and correct the code.  Obviously it would be a great
+so that I can try and correct the code. Obviously it would be a great
 advantage to other users if all (or at least most...) of the bugs were ironed
-out.  When reporting a bug, please try to give as much information as
+out. When reporting a bug, please try to give as much information as
 possible: exactly what happened, what you were doing at the time, your system
-configuration, etc.  I would be interested to receive any problem index files
+configuration, etc. I would be interested to receive any problem index files
 if you produce any.
 
 The following are not strictly bugs, but they are problems that have come to
-light during use.  Although there is nothing strictly 'wrong' with the code,
-it might be worthwhile trying to find a solution.  If anyone has any ideas...
+light during use. Although there is nothing strictly 'wrong' with the code,
+it might be worthwhile trying to find a solution. If anyone has any ideas...
 
-* Index will currently not index the 203Mb hard disc on my RiscPC.  This is
-  because it is impossible to store all the icon sprites that are contained
-  on it in memory while the compilation takes place.  If the sprite
-  collection were optimised, then hard disc indexing may become possible;
-  however, a hard disc can be searched quicker using the filer's 'Find'
-  facility: Index is intended mainly for floppies.  Perhaps icon collection
-  could be turned off...
+* Index will currently not index the 203Mb hard disc on my RiscPC. This is
+ because it is impossible to store all the icon sprites that are contained
+ on it in memory while the compilation takes place. If the sprite
+ collection were optimised, then hard disc indexing may become possible;
+ however, a hard disc can be searched quicker using the filer's 'Find'
+ facility: Index is intended mainly for floppies. Perhaps icon collection
+ could be turned off...
 
-  PS. That problem was with 4Mb RAM in the machine; using the program on a
-  machine with 13Mb shows that Index can handle a full 203Mb hard disc with
-  no problems at all and can even deal with a PC partition.  The resulting
-  file was 287Kb long though!
+ PS. That problem was with 4Mb RAM in the machine; using the program on a
+ machine with 13Mb shows that Index can handle a full 203Mb hard disc with
+ no problems at all and can even deal with a PC partition. The resulting
+ file was 287Kb long though!
 
 * Due to the way in which the sprite collection works, Index gets application
-  sprites wrong if the sprites are not stored in the application directory.
-  This is the case with Acorn's ROM Apps and some of their other Apps Disc
-  utilities.  The sprites for these are in ROM, even when the application is
-  on disc (RISC OS 3.5, mutter mutter...) and so no sprites can be found for
-  these applications.  The well known and loved 'Archimedes Application A'
-  sprite is correctly substituted in these cases.
+ sprites wrong if the sprites are not stored in the application directory.
+ This is the case with Acorn's ROM Apps and some of their other Apps Disc
+ utilities. The sprites for these are in ROM, even when the application is
+ on disc (RISC OS 3.5, mutter mutter...) and so no sprites can be found for
+ these applications. The well known and loved 'Archimedes Application A'
+ sprite is correctly substituted in these cases.
+
+</chapter>
 
 
-History
--------
+
+
+
+<chapter title="History" file="History">
 
 This is a list of the current versions of Index.
 
-1.00  (6 September 1995)
-     *This was the first version of Index, written for my own use.  Most of
-      the features were present, except the neat opening of windows.
+1.00 (6 September 1995)
+   *This was the first version of Index, written for my own use. Most of
+   the features were present, except the neat opening of windows.
 
-1.01  (12 September 1995)
-     *Tidied up the window opening, and fixed a few bugs that I had found.
+1.01 (12 September 1995)
+   *Tidied up the window opening, and fixed a few bugs that I had found.
 
-1.02  (17 September 1995)
-     *A few bug fixes, I think the program is OK now!
+1.02 (17 September 1995)
+   *A few bug fixes, I think the program is OK now!
 
-1.03  (4 January 1996)
-     *A bug-fix in the scanning routines (gulp...).
-     *The ability to open roots or close files from the icon-bar menu was
-      added (· la ArcFS 2).
+1.03 (4 January 1996)
+   *A bug-fix in the scanning routines (gulp...).
+   *The ability to open roots or close files from the icon-bar menu was
+   added (· la ArcFS 2).
 
-1.04  (30 March 1996)
-     *Includes a kludge to read the disc format automatically -  Works OK,
-      but occasionally falls down...  Wrote a BASIC prog GuessForm to correct
-      any mistakes...
-     *The memory required is now claimed using Wimp_SlotSize, rather than
-      using the RMA.  This is in line with Acorn guidelines...
-     *The bug which caused Index to crash if it encountered sprite files
-      containing sprites with names such as file_pic (ie pic is not a valid
-      hex number) has been fixed.  You just can't assume anything...sigh :-(
-     *The file loading and saving routines have been written in assembler,
-      removing the need for the SquashUtils module.  This certainly speeds up
-      the saving of indexes, which never used the module in the first place.
-     *Wildcards were added to the search routines.
-     *The use of the heaps is now safe from errors: if memory runs out, that
-      already claimed is released so that it is not lost for good.  This is
-      better than simply quitting the current procedure and losing track of
-      all the claimed memory...  It also means that the viewer being opened
-      can be closed without crashing Index.
-     *The bug introduced into the search routines has been removed again.
+1.04 (30 March 1996)
+   *Includes a kludge to read the disc format automatically - Works OK,
+   but occasionally falls down... Wrote a BASIC prog GuessForm to correct
+   any mistakes...
+   *The memory required is now claimed using Wimp_SlotSize, rather than
+   using the RMA. This is in line with Acorn guidelines...
+   *The bug which caused Index to crash if it encountered sprite files
+   containing sprites with names such as file_pic (ie pic is not a valid
+   hex number) has been fixed. You just can't assume anything...sigh :-(
+   *The file loading and saving routines have been written in assembler,
+   removing the need for the SquashUtils module. This certainly speeds up
+   the saving of indexes, which never used the module in the first place.
+   *Wildcards were added to the search routines.
+   *The use of the heaps is now safe from errors: if memory runs out, that
+   already claimed is released so that it is not lost for good. This is
+   better than simply quitting the current procedure and losing track of
+   all the claimed memory... It also means that the viewer being opened
+   can be closed without crashing Index.
+   *The bug introduced into the search routines has been removed again.
 
-1.05  (11 August 1996)
-     *The 'Index disc...' option was removed from the icon-bar menu: it
-      didn't really do anything useful and Select-click on the icon was so
-      much easier.
-     *Index now uses a messages file, which allows easy modification of the
+1.05 (11 August 1996)
+   *The 'Index disc...' option was removed from the icon-bar menu: it
+   didn't really do anything useful and Select-click on the icon was so
+   much easier.
+    *Index now uses a messages file, which allows easy modification of the
       text used.
      *Interactive help is now supported fully (in windows and menus).
      *Menu generation (and structure) has been tidied up a lot.
      *Those greyed-out-but-still-visible menus that the filer has are now
       supported.
-     *The Choices window was completely redesigned and recoded.  It is now a
-      smart 'multi-part' window as used by StrongEd and most 'Doze95 software
-      (there, that's ONE almost good feature...).
-     *The sprite collection routines have been tidied up; they now use one
-      general routine rather than two specific ones (think first, code
-      later... not the other way round).  The choice of which file to store
-      is now given to the user in the choices box.
-     *Hourglassing added to the index load and save routines; decompressing
-      large files can still take a long time, even in assembly language.
-     *Windows iconised on to the pinboard now get a neat little index icon.
-     *Correct lo-res, hi-res and mono sprites are provided; this allows Index
-      to look good in any mode and doesn't trip up the application if it
-      scans itself and collects the sprites...  Sorry about the mono sprites,
+     *The Choices window was completely redesigned and recoded. It is now a
+   smart 'multi-part' window as used by StrongEd and most 'Doze95 software
+   (there, that's ONE almost good feature...).
+   *The sprite collection routines have been tidied up; they now use one
+   general routine rather than two specific ones (think first, code
+   later... not the other way round). The choice of which file to store
+   is now given to the user in the choices box.
+   *Hourglassing added to the index load and save routines; decompressing
+   large files can still take a long time, even in assembly language.
+   *Windows iconised on to the pinboard now get a neat little index icon.
+   *Correct lo-res, hi-res and mono sprites are provided; this allows Index
+   to look good in any mode and doesn't trip up the application if it
+   scans itself and collects the sprites... Sorry about the mono sprites,
       but my artistic skills are not quite up to designing dithered discs!
      *The error messages have been tidied up, to make them more
       understandable (I hope!).
@@ -621,7 +729,7 @@ This is a list of the current versions of Index.
       orange - Acorn, I'm confused) and icons have been realigned.
 
 1.06  (2 March 1997)
-     *Long filenames are truncated to 15 characters.  This gets around
+     *Long filenames are truncated to 15 characters. This gets around
       possible problems with LongFiles and X-Files where filenames of 16 or
       more characters would corrupt the file. Disc names are truncated to 12
       characters.
@@ -631,7 +739,7 @@ This is a list of the current versions of Index.
       applications to the icon bar.
      *Date and version number taken out of template file and put in with the
       messages to allow easier updating.
-     *Support for the new choices system on Risc OS 3.5+.  The choices are
+     *Support for the new choices system on Risc OS 3.5+. The choices are
       now saved into !Boot.Choices.Index.Choices rather than into the
       application directory (more accurately, they are saved to
       <Choices$Write>.Index.Choices and read from Choices:Index.Choices).
@@ -639,7 +747,7 @@ This is a list of the current versions of Index.
      *The Territory Manager is now supported.
      *Index now searches for user alterable data (Choices and the
       default Index directory) along the system variable <Index$Path> rather
-      than <Index$Dir>.  This allows these files to be put in alternative
+      than <Index$Dir>. This allows these files to be put in alternative
       locations if Index is on a read-only disc.
      *All * Commands are now called with a preceding % to allow for any
       aliases set up.
@@ -668,14 +776,117 @@ This is a list of the current versions of Index.
 1.10  (22 May 2000)
      *Fixed bug with OS_FSControl 55 that stopped indexing on RISC OS 3.5
       or greater.
-      
+
+</chapter>
+
+
+
+
+
+
+<literal mode="Text">
+
 
 Updates and Contacting Me
 -------------------------
 
-If you have any comments about Index, or would like to report any bugs that you find, you can email me at the address below.
+  If you have any comments about Index, or would like to report any bugs
+  that you find, you can email me at the address below.
 
-Updates to Index and more programmes for Acorn computers can be found on my website at http://www.stevefryatt.org.uk/software/
+  Updates to Index and more programs for RISC OS computers can be found on
+  my website at http://www.stevefryatt.org.uk/software/
 
-Stephen Fryatt
-email: steve@stevefryatt.org.uk
+  Stephen Fryatt
+  email: steve@stevefryatt.org.uk
+</literal>
+
+
+
+
+
+
+<literal mode="Strong" file="!Configure">
+# Configure file for StrongHelp
+# Lines starting with "# " are comments (Note the space)
+# Lines starting with "#Commands" and "#End" are *not* comments.
+
+#Commands
+
+# f0  = Sassoon.Primary           14   Bold  1  Italic  2  Both  3
+# f1  = Sassoon.Primary.Bold      14   Bold  1  Italic  2  Both  3
+# f2  = Homerton.Medium.Oblique   14   Bold  1  Italic  2  Both  3
+# f3  = Homerton.Bold.Oblique     14   Bold  1  Italic  2  Both  3
+
+# The Body font
+
+f0  = Trinity.Medium          14   Bold  1  Italic  2  Both  3
+f1  = Trinity.Bold            14   Bold  1  Italic  2  Both  3
+f2  = Trinity.Medium.Italic   14   Bold  1  Italic  2  Both  3
+f3  = Trinity.Bold.Italic     14   Bold  1  Italic  2  Both  3
+f4  = Trinity.Medium          10
+
+# The Headline fonts
+
+f10 = Homerton.Bold           16
+f11 = Homerton.Bold.Oblique   14
+f12 = Trinity.Bold            14
+f13 = Trinity.Bold.Italic     12
+f14 = Trinity.Medium          10
+f15 = Trinity.Medium.Italic   8
+
+# The fonts used for fCode
+
+f20 = Corpus.Medium           14   Bold 21  Italic 22  Both 23
+f21 = Corpus.Bold             14   Bold 21  Italic 22  Both 23
+f22 = Corpus.Medium.Oblique   14   Bold 21  Italic 22  Both 23
+f23 = Corpus.Bold.Oblique     14   Bold 21  Italic 22  Both 23
+
+# Fonts 24 to 31 are reserved for the manuals themselves.
+
+# The styles..
+
+fStd       = f0
+fLink      = f_
+fStrong    = f*
+fEmphasis  = f/
+fUnderline = f_
+fCode      = f20
+fCite      = f/
+
+fH1        = f10
+fH2        = f11
+fH3        = f12
+fH4        = f13
+fH5        = f14
+fH6        = f15
+
+# Set default background and font
+
+#Background rgb 255,255,255
+Background wimp 1
+fStd
+
+#End
+</literal>
+
+
+
+
+
+
+
+
+
+<literal mode="HTML">
+
+<hr noshade>
+<h2>Updates and Contacting Me</h2>
+
+<p>If you have any comments about <cite>Index</cite>, or would like to report any bugs that you find, you can email me at the address below.</p>
+
+<p>Updates to <cite>Index</cite> and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p>
+
+<p>Stephen Fryatt (email: <a href="mailto:steve@stevefryatt.org.uk">steve@stevefryatt.org.uk</a>)</p>
+</body>
+</html>
+</literal>
