@@ -166,65 +166,23 @@ There is a bug in Filecore, which causes the Filer to crash if too many discs (8
 
 <chapter title="Using Indexes" file="Use">
 
-To use an index file, double-click on it or drag it to the Index icon. The
-viewer for the root directory will open, in much the same way as the filer
-opens directories when you click on the disc icons on the icon bar. Clicking
-adjust on the Index icon on the icon bar will open the root directory of the
-current search path. See the 'Searching & Counting Files' and 'Choices'
-sections for more details.
+To use an index file, double-click on it or drag it to the <cite>Index</cite> icon. The viewer for the root directory will open, in much the same way as the filer opens directories when you click on the disc icons on the iconbar. Clicking <mouse>adjust</mouse> on the <cite>Index</cite> icon on the iconbar will open the root directory of the current search path. See the <link ref="Count">Searching &amp; Counting Files</link> and <link ref="Choices">Choices</link> sections for more details.
 
-Indexes appear, and can be used, in much the same way as filer windows: the
-only difference being that you cannot save files to them, or load files from
-them. Note also that the 'pathnames' all begin with 'Index' (not ADFS, SCSI
-or RAM). Double-clicking on directories, applications, or image systems,
-will open their sub-directories; you do not need to use shift. Single clicks
-will, as usual, select the object; and multiple groups can be made with
-adjust - just like the filer. The 'drag-box' feature in the filer has NOT
-been implemented yet.
+Indexes appear, and can be used, in much the same way as filer windows: the only difference being that you cannot save files to them, or load files from them. Note also that the &lsquo;pathnames&rsquo; all begin with &lsquo;Index&rsquo; (not &lsquo;ADFS&rsquo;, &lsquo;SCSI&rsquo; or &lsquo;RAM&rsquo;). Double-clicking on directories, applications, or image systems, will open their sub-directories; you do not need to use <key>shift</key>. Single clicks will, as usual, select the object; and multiple groups can be made with <key>adjust</key> &ndash; just like the filer. The &lsquo;drag-box&rsquo; feature in the filer has <em>not</em> been implemented yet.
 
-Clicking menu will open a familiar menu. The menu is, in fact, an exact copy
-of the standard filer menu, with some of the options (in the Display, Object, and Options menus) greyed out as they are not applicable. 'New
-directory' has been replaced totally, and now leads to a 'Disc index' menu;
-this offers options that the filer does not.
+Clicking <mouse>menu</mouse> will open a familiar menu. The menu is, in fact, an exact copy of the standard filer menu, with some of the options (in the <menu>Display</menu>, <menu>Object</menu>, and <menu>Options</menu> menus) greyed out as they are not applicable. <menu>New directory</menu> has been replaced totally, and now leads to a <menu>Disc index</menu> menu; this offers options that the filer does not.
 
-The Display menu works in the usual fashion, except that the Sort by...
-options are not available. The Object menu (which can read any of: File
-'xxx'; App. 'xxx'; Dir. 'xxx', or Selection) again works in the usual way;
-but the only options available are 'Count', 'Info', and 'Find'. Count will
-count the size of the selected object; Info gives some information about the
-object, and Find will try and find a given object within the selected ones
-(note that these all recurse into directories, applications, and image
-systems). The usual (strange) rules apply - for example, Count ignores the
-size of directories and applications (usually 2K), in the same way that the
-filer does.
+The <menu>Display</menu> menu works in the usual fashion, except that the <menu>Sort by...</menu> options are not available. The <menu>Object</menu> menu (which can read any of: <menu>File &lsquo;xxx&rsquo;</menu>; <menu>App. &lsquo;xxx&rsquo;</menu>; <menu>Dir. &lsquo;xxx&rsquo;</menu>, or <menu>Selection</menu>) again works in the usual way; but the only options available are <menu>Count</menu>, <menu>Info</menu>, and <menu>Find</menu>. <menu>Count</menu> will count the size of the selected object; <menu>Info</menu> gives some information about the object, and <menu>Find</menu> will try and find a given object within the selected ones (note that these all recurse into directories, applications, and image systems). The usual (strange) rules apply &ndash; for example, <menu>Count</menu> ignores the size of directories and applications (usually 2K), in the same way that the filer does.
 
-'Select all' and 'Clear selection' do exactly as their names suggest (note
-that, if the options menu reads File '', and is greyed out, then 'Clear
-selection' is NOT available, since there is nothing to clear). 'Options'
-leads to the usual 'filer action' options, of which only 'Verbose' is
-applicable. This is explained under the section 'Counting & Finding Files'.
+<menu>Select all</menu> and <menu>Clear selection</menu> do exactly as their names suggest (note that, if the options menu reads <menu>File ''</menu>, and is greyed out, then <menu>Clear selection</menu> is <em>not</em> available, since there is nothing to clear). <menu>Options</menu> leads to the usual &lsquo;filer action&rsquo; options, of which only <menu>Verbose</menu> is applicable. This is explained under the section <link ref="Count">Counting &amp; Finding Files</link>.
 
-'Disc index' leads to the only 'non-filer' menu available. This menu
-contains three options: 'Info', 'Disc info', and 'Save sprites'. 'Info'
-leads to the obligatory program information. 'Disc info' leads to a window
-displaying information about the index loaded. This includes the disc name,
-the number of files (this includes directories and applications), the space
-both free and used, the disc format, and the date the index was made. 'Save
-sprites' will allow all the icon sprites used in the index to be saved out.
+<menu>Disc index</menu> leads to the only &lsquo;non-filer&rsquo; menu available. This menu contains three options: <menu>Info</menu>, <menu>Disc info</menu>, and <menu>Save sprites</menu>. <menu>Info</menu> leads to the obligatory program information. <menu>Disc info</menu> leads to a window displaying information about the index loaded. This includes the disc name, the number of files (this includes directories and applications), the space both free and used, the disc format, and the date the index was made. <menu>Save sprites</menu> will allow all the icon sprites used in the index to be saved out.
 
-'Open parent' is fairly self explanatory.
+<menu>Open parent</menu> is fairly self explanatory.
 
-As with all filer windows, clicking with adjust on the icons will open the
-sub-directory and close the parent. Adjust double-clicking on a FILE will
-close the window - you have been warned. Adjust clicking on a close icon
-will (again as usual) open the parent window.
+As with all filer windows, clicking with <key>adjust</key> on the icons will open the sub-directory and close the parent. <key>Adjust</key> double-clicking on a <em>file</em> will close the window &ndash; you have been warned. <key>Adjust</key> clicking on a close icon will (again as usual) open the parent window.
 
-The 'Indexes' option in the icon-bar menu leads to a menu allowing you to
-open and close indexes. 'Open root' allows the root directory to be opened
-for any loaded index, it will bring the window to the front if it is already
-open; 'Close index' will close the viewers for a given index, and free the
-memory; 'Close all' will close all the currently open indexes, again freeing
-memory.
+The <menu>Indexes</menu> option in the iconbar menu leads to a menu allowing you to open and close indexes. <menu>Open root</menu> allows the root directory to be opened for any loaded index, it will bring the window to the front if it is already open; <menu>Close index</menu> will close the viewers for a given index, and free the memory; <menu>Close all</menu> will close all the currently open indexes, again freeing memory.
 
 </chapter>
 
@@ -232,21 +190,13 @@ memory.
 
 
 
-<chapter title="Counting &amp; Finding Files" file="Count">
+<chapter title="Counting & Finding Files" file="Count">
 
-Index supports these options in the same way as the filer does: by using
-'filer action windows'. Note, however, that Index only allows one filer
-action window to be active at any one time. While one is open, the search
-and count menu options will all be greyed out.
+<cite>Index</cite> supports these options in the same way as the filer does: by using &lsquo;filer action windows&rsquo;. Note, however, that <cite>Index</cite> only allows one such window to be active at any one time. While one is open, the search and count menu options will all be greyed out.
 
-It is possible to count files in the usual way, and to search for them.
-Searching can be done in two ways.
+It is possible to count files in the usual way, and to search for them. Searching can be done in two ways.
 
-Searching a selection again works in the same way as with the filer. Make a
-selection of the objects that you wish to search, and enter the object name
-into the 'Find file' field. Wildcards (# match any single character, * match
-any zero or more characters) can be used if required. Click on the field or
-press return to start the search.
+Searching a selection again works in the same way as with the filer. Make a selection of the objects that you wish to search, and enter the object name into the <menu>Find file</menu> field. Wildcards (<code>#</code> match any single character, <code>*</code> match any zero or more characters) can be used if required. Click on the field or press <key>return</key> to start the search.
 
 The usual action window will open, containing two options: 'Pause' and
 'Abort'. Clicking on 'Pause' will pause the search, and subsequently
@@ -413,7 +363,7 @@ When trying to load the choices, Index will first look here for a file called
 Choices, and then, if this does not exist, for the file <Index$Dir>.Choices.
 Only if NEITHER file can be found will the default options be used.
 
-<chapter>
+</chapter>
 
 
 
@@ -888,3 +838,4 @@ fStd
 </body>
 </html>
 </literal>
+
