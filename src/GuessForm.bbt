@@ -1,0 +1,133 @@
+DIM b% 4000
+:
+REMpath$="ADFS::HardDisc4.$.MainApps.DiscIndex.Indexes.Magazines."
+path$="RAM:"
+:
+PRINT "Guess Formats of Discs Indexed With !Index"
+PRINT "(c) Stephen Fryatt, 1996"
+PRINT'"        Current path: ";path$
+INPUT "     Enter a new one: "new$
+IF new$="" THEN
+ PRINT'"            New Path: No Change"
+ELSE
+ path$=new$
+ PRINT'"            New Path: ";path$
+ENDIF
+ON ERROR IF ERR=214 THEN PRINT'"File does not exist" ELSE PRINT''REPORT$+" at line "+STR$(ERL) :  END
+PRINT
+:
+REPEAT
+ INPUT "           File name: "file$
+ IF file$="" THEN END
+ file$=path$+file$
+ PROCsquash_load
+ PRINT "                Disc: ";$addr%
+ disc_size%=addr%!24+addr%!28
+ CASE disc_size% OF
+  WHEN &C8000  : format%=0
+  WHEN &190000 : format%=1
+  WHEN &A0000  : format%=3
+  WHEN &B4000  : format%=4
+  WHEN &168000 : format%=5
+ OTHERWISE : format%=-1
+ ENDCASE
+ PRINT "      Guessed format: ";FNdisc_format(format%)
+ PRINT "[A]ccept or [C]hange: ";
+ REPEAT
+  get$=GET$
+  got%=INSTR("ACac",get$)
+ UNTIL got% > 0
+ got%=got% MOD 2
+ IF got%=0 THEN
+  PRINT "Change"
+  PRINT
+  FOR loop%=0 TO 12
+   PRINT STRING$(19," ");
+   IF loop%<=9 THEN PRINT STR$(loop%); ELSE PRINT CHR$(loop%+55);
+   PRINT ": "+FNdisc_format(loop%)
+  NEXT loop%
+  PRINT'"  Enter a new format: ";
+  REPEAT
+   get$=GET$
+   IF get$>="a" AND get$<="z" THEN get$=CHR$(ASC(get$)-32)
+   got%=INSTR("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",get$)
+  UNTIL got% > 0
+  PRINT FNdisc_format(got%-1)
+  format%=got%-1
+ ELSE
+  PRINT "Accept"
+ ENDIF
+ addr%!32=format%
+ PROCsquash_save
+ PRINT'"                      File updated OK"
+ PRINT'
+UNTIL FALSE
+END
+:
+DEF PROCsquash_load
+SYS "Squashed_Info",file$ TO ,,,,size%
+addr%=FNclaim_rma(size%)
+SYS "Squashed_Load",file$,addr%
+end%=addr%+size%
+ENDPROC
+:
+DEF PROCsquash_save
+length%=end%-addr%
+rma%=addr%
+SYS "Squash_Compress",%1000,length% TO ws_size%
+ws%=FNclaim_rma(ws_size%)
+togo%=length%
+start%=0
+SYS "OS_File",&0B,file$,&0E1,,0,0
+out%=OPENUP(file$)
+SYS "OS_File",&05,file$ TO ,,b%!8,b%!12
+$b%="SQSH"
+b%!4=length%
+b%!16=0
+SYS "OS_GBPB",2,out%,b%,20
+packed=0
+REPEAT
+SYS "Squash_Compress",start%,ws%,addr%,togo%,b%,4000 TO status%,,addr%,togo%,,unused%
+SYS "OS_GBPB",2,out%,b%,4000-unused%
+start%=1
+UNTIL status%=0
+CLOSE #out%
+PROCrelease_rma(ws%)
+PROCrelease_rma(rma%)
+ENDPROC
+:
+DEF FNclaim_rma(size%)
+SYS "OS_Module",6,,,size% TO ,,dim% ;flags%
+IF flags% AND 1 THEN ERROR 255,"No room for this block"
+:
+REM This call simply claims blocks of memory from the RMA.
+=dim%
+:
+DEF PROCrelease_rma(release_block%)
+SYS "OS_Module",7,,release_block%
+SYS "XOS_ChangeDynamicArea",1,-16777216
+:
+REM We release the block from the RMA, and call OS_ChangeDynamicArea to try and squash
+REM the RMA down again.  The OS shold do this itself, but...   The area cannot be greater than
+REM 16Mb under RiscOs, so a 16Meg squash is enough!
+ENDPROC
+:
+DEF FNdisc_format(val%)
+LOCAL format$
+CASE val% OF
+ WHEN 0 : format$="ADFS 800K (E)"
+ WHEN 1 : format$="ADFS 1.6M (F)"
+ WHEN 2 : format$="ADFS 800K (D)"
+ WHEN 3 : format$="ADFS 640K (L)"
+ WHEN 4 : format$="DOS 720K"
+ WHEN 5 : format$="DOS 1.44M"
+ WHEN 6 : format$="DOS 360K"
+ WHEN 7 : format$="DOS 1.2M"
+ WHEN 8 : format$="DOS 180K"
+ WHEN 9 : format$="DOS 320K"
+ WHEN 10 : format$="DOS 160K"
+ WHEN 11 : format$="Atari 720K"
+ WHEN 12 : format$="Atari 360K"
+ OTHERWISE : format$="Not Recognised"
+ENDCASE
+=format$

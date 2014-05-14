@@ -106,6 +106,7 @@ FINDHELP := !Help,ffb
 TEXTHELP := HelpText,fff
 SHHELP := Index,3d6
 LICENSE := Licence,fff
+GUESSFORM := GuessForm,ffb
 
 
 # Set up the source files.
@@ -120,6 +121,8 @@ SRCS := Index.bbt
 
 OBJS := IndexCode.o
 
+GFSRCS := GuessForm.bbt
+
 # Build everything, but don't package it for release.
 
 all: application documentation
@@ -127,7 +130,7 @@ all: application documentation
 
 # Build the application and its supporting binary files.
 
-application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(CODE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
+application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(CODE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS) $(OUTDIR)/$(GUESSFORM)
 
 
 # Build the complete !RunImage from the object files.
@@ -136,6 +139,11 @@ SRCS := $(addprefix $(SRCDIR)/, $(SRCS))
 
 $(OUTDIR)/$(APP)/$(RUNIMAGE): $(SRCS)
 	$(TOKENIZE) $(TOKFLAGS) $(firstword $(SRCS)) -link -out $(OUTDIR)/$(APP)/$(RUNIMAGE) -path $(LIBPATHS) -define 'build_date$$=$(BUILD_DATE)' -define 'build_version$$=$(VERSION)'
+
+GFSRCS := $(addprefix $(SRCDIR)/, $(GFSRCS))
+
+$(OUTDIR)/$(GUESSFORM): $(GFSRCS)
+	$(TOKENIZE) $(TOKFLAGS) $(firstword $(GFSRCS)) -link -out $(OUTDIR)/$(GUESSFORM) -path $(LIBPATHS) -define 'build_date$$=$(BUILD_DATE)' -define 'build_version$$=$(VERSION)'
 
 # Build the complete Code from the object files.
 
@@ -203,4 +211,5 @@ clean:
 #	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
+	$(RM) $(OUTDIR)/$(GUESSFORM)
 
