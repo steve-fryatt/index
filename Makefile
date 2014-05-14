@@ -208,7 +208,7 @@ clean:
 	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(APP)/$(FINDHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
-#	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
 	$(RM) $(OUTDIR)/$(GUESSFORM)
