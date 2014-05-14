@@ -1,0 +1,275 @@
+# Messages for !Index V1.06a
+# 2 March 1997
+
+TaskName:Index
+
+# Version number and date
+
+Version:1.11 beta
+Date:21 January 2002
+
+# Fatal error...
+
+Error:Index has suffered an internal error (%0 - error code %1). Chose OK to contine, Cancel to exit.
+
+# General messages
+
+Message:Message from
+NoCode:Code file could not be found.
+NoSlot:There is not enough free memory in the machine to expand the Wimp Slot.
+CantScan:There is not enough free memory in the machine to scan the disc; reduce the allocation and try again.
+NoAlloc:There is not enough memory allocated to scan the disc; increase the size and try again.
+NoDisc:The disc drive is empty.
+NoMem:There is not enough memory allocated to scan the disc; increase the size and try again.
+TooManyViewers:There are too many index viewers already open.
+WinHeapFull:There is not enough free space in the internal heap to create this window.
+InfoHeapFull:There is not enough space in the internal heap to show full info.
+SlotFull:There is not enough free memory in the machine to load this index.
+SaveAs:To save, drag the icon to a directory viewer.
+TooManyFiles:There are too many index files already loaded.
+BadType:The filetype is not recognised.
+NotFile:This is not a file, or it does not exist.
+NotIndex:This is not an Index file.
+BadIndex:The file was not an Index file or was corrupted.
+DecompHeap:Could not allocate enough workspace for Squash_Decompress.
+DecompErr:Error in Squash_Decompress.
+BadSaveParam:Bad parameters for squash_save routine.
+CompHeap:Could not allocate enough workspace for Squash_Compress.
+NoFile:Could not open output file.
+CompErr:Error in Squash_Compress.
+SprFull:There is not enough memory allocated to store all the sprites; increase the size and try again.
+NoSprRoom:There is not enough room in the sprite area to merge all the sprites; increase the file space and try again.
+
+# Sprite types
+
+Sp1:Sprites
+Sp2:Sprites22
+Sp3:Sprites23
+
+# Text for filer actions
+
+Index:Index
+Count:Counting files
+Counted:files counted
+Total:bytes total
+Many:<many>
+Find:Finding an object
+DChecked:directories checked
+FChecked:files checked
+
+# Text for FA's buttons
+
+Abort:Abort
+Pause:Pause
+Counting:Counting
+Checking:Checking
+Continue:Continue
+PausedC:Paused counting
+PausedCh:Paused checking
+OK:OK
+Finished:Finished
+Found:Found
+Open:Open
+View:View
+Run:Run
+
+# Disc formats
+
+D:ADFS 800K (D)
+E:ADFS 800K (E)
+F:ADFS 1.6M (F)
+H:DOS 1.2M
+L:ADFS 640K (L)
+M:DOS 720K
+N:DOS 360K
+P:DOS 180K
+Q:DOS 1.44M
+T:DOS 320K
+U:DOS 160K
+Y:Atari 720K
+Z:Atari 360K
+UnRecog:Not Recognised
+
+# Help text
+#
+# *** The order of these messages (especially for the menus) may be vital! ***
+#
+# Tokens for the windows take the form HelpWWIIS, where:
+#
+#   WW is the two letter window code;
+#   II is the icon number, or XX for general
+#   S  is the icon state, and is:
+#      X general
+#      T sub into general if cond is true,
+#      F  "   "      "    "   "   "  false.
+
+HelpIBXXX:\TIndex application, a comprehensive disc indexer.|M\Sindex the disc in the selected drive.|M\Aopen the index directory.|MDrag an index file here to display the root directory.
+HelpPIXXX:\TIndex information \w.|M
+HelpOIXXX:This box gives information about the currently selected item.|MThe item's size is given in bytes.
+HelpDIXXX:This box gives information about the currently selected  disc.
+HelpO?XXX:This \w allows you to set the program choices.%0
+HelpOP02X:|M\Scancel the changes and close the \w.
+HelpOP03X:|M\Sset the changes, save them and close the \w.
+HelpOP04X:|M\Sset the changes and close the \w.
+HelpOP05X:|M\Sset the choices for %0.
+HelpOP051:filing system and drive number
+HelpOP052:using icon sprites
+HelpOP053:including files in the index
+HelpOP054:the memory for index compilation
+HelpOP055:global searches
+HelpOP056:file display
+HelpO104X:|M\Sindex the disc in drive :%0.
+HelpO1041:0
+HelpO1042:1
+HelpO1043:2
+HelpO1044:3
+HelpO1045:4
+HelpO1046:5
+HelpO1047:6
+HelpO1048:7
+HelpO112X:|M\Sindex%0 system.
+HelpO1121: the ADFS:
+HelpO1122: the RAM:
+HelpO1123: the SCSI:
+HelpO1124: any other filing
+HelpO116X:|M\Tsystem to index.
+HelpO200X/HelpO207X:|MThis section controls the file from which sprites are taken.
+HelpO201X/HelpO209X:|MThis section controls which sprites are stored.
+HelpO206X:|M\S%0 file sprites.
+HelpO208X:|M\S%0 application sprites.
+HelpO202X:|M\S%0 small sprites.
+HelpO20?T:leave out
+HelpO20?F:include
+HelpO203X:|M\Schoose the sprite file to be used in preference.
+HelpO204X:|M\Tsprite file to be used in preference.
+HelpO300X/HelpO301X:|MThis section controls what files are indexed.
+HelpO302X:|M\S%0 the contents of applications.
+HelpO303X:|M\S%0 the contents of image filing systems.
+HelpO30?T:ignore
+HelpO30?F:index
+HelpO400X/HelpO401X:|MThis section controls the memory claimed for indexing discs.
+HelpO403X:|M\Tmemory claimed for the new file.
+HelpO406X:|M\Tmemory claimed for the icon sprites.
+HelpO408X:|M\Sclaim a fixed amount of memory for index compilation.
+HelpO409X:|M\Schoose the amount of memory for the file as a fixed amount of that grabbed.
+HelpO411X:|M\Tamount of memory used for the new file; the rest is for icon sprites.
+HelpO413X:|M\Tpercentage of the memory used for the new file; the rest is for icon sprites.
+HelpO415X:|M\Tamount of memory left free in the machine.
+HelpO417X:|M\Schoose the amount of memory for the file as a percentage of that grabbed.
+HelpO418X:|M\Sgrab the available free memory for index compilation.
+HelpO500X/HelpO503X:|MThis section controls the global search path.
+HelpO501X:|M\Tglobal search path.|MDrag files, directories, or applications here to change the path.
+HelpO502X:|M\S%0 directories and applications dragged to the Index icon.
+HelpO502T:ignore
+HelpO502F:set the search path with
+HelpO504X/HelpO505X:|MThis section controls the default search options.
+HelpO510X:|M\S%0 of searches and counts.
+HelpO510T:only show completions
+HelpO510F:continualy show progress
+HelpO511X:|M\Sconduct searches and counts %0.
+HelpO511T:relatively slowly
+HelpO511F:fast
+HelpO600X/HelpO601X:|MThis section controls the display type.
+HelpO602X:|M\Suse large icons.
+HelpO603X:|M\Suse small icons.
+HelpO604X:|M\Sshow full information.
+HelpSIXXX:Either drag \s from the file icon to a directory display, or fill in the name of a file and click \s on OK, to save the new index as a index file.
+HelpSSXXX:Either drag \s from the file icon to a directory display, or fill in the name of a file and click \s on OK, to save the icon sprites used in this index as a sprite file.
+HelpSWXXX:This \w allows you to search all the index files in the search directory.%0
+HelpSW01X:|MThis is the name of an object you want to find.
+HelpSW02X:|M\Sspecify a file type to be matched.
+HelpSW03X:|MThis is the file type to search for.
+HelpSW04X:|M\Smatch any file type.
+HelpSW06X/HelpO506X:|M\S%0 directories.
+HelpSW07X/HelpO507X::|M\S%0 applications.
+HelpSW08X/HelpO508X::|M\S%0 the contents of applications.
+HelpSW??T/HelpO506T/HelpO507T/HelpO508T/HelpO509T:ignore
+HelpSW08F/HelpO508F:search
+HelpSW10X/HelpO509X:|M\S%0 files.
+HelpSW06F/HelpSW07F/HelpSW10F/HelpO506F/HelpO507F/HelpO509F:match
+HelpSW11X:|M\Sstart the search.
+HelpSW12X:|M\Scancel the search.
+HelpFAXXX:This \w shows the progress of a background %1 operation.%0
+HelpFA07X:|M\Sabort this operation.
+HelpFA08X:|M\Sopen this application or image file.
+HelpFA09X:|M\Sopen the directory containing this object.
+HelpFA10X:|M\S%0.
+HelpFA101:continue the operation
+HelpFA102:pause this operation
+HelpFA103:continue onto the next object
+HelpFA11X:|M\S%0.
+HelpFA111:open this directory
+HelpFA112:acknowledge the information
+HelpFACNT:count
+HelpFACHK:checking
+HelpDVXXX:\Sselect a file, directory or application.|MDouble-click \s to open a directory or application.
+
+# These are menu entries,
+#
+# Tokens take the form HelpM1122..GO, where
+#
+#       M            is the menu code,
+#       11, 22, etc  are the selection numbers,
+#       G            is an optional grey flag, and
+#       O            is an optional additional identifier
+
+HelpI00/HelpM0500:\Rsee information about Index.
+HelpI01:\Rclose an index or open the root directory.
+HelpI01G:\Gthere are no indexes currently loaded.
+HelpI0100:\Ropen the root directory of an index.
+HelpI0100??:\Sopen the root directory of the '%1' index.
+HelpI0101:\Rclose an index.
+HelpI0101??:\Sclose the '%1' index.
+HelpI0102:\Sclose all the indexes.
+HelpI02:\Ssearch all the indexes for an object.
+HelpI02G/HelpM0104G?/HelpM0107G?:\Gthere is already one 'filer-action' \w open.
+HelpI03:\Schange the way in which Index operates.
+HelpI04:\Squit Index.
+HelpM00:\Rcontrol how objects in this directory viewer are displayed.
+HelpM0000:\Sdisplay the objects in this directory using large icons.
+HelpM0001:\Sdisplay the objects in this directory using small icons.
+HelpM0002:\Sdisplay the full information on the objects in this directory.
+HelpM0003:\Ssort the items in this directory by their names.
+HelpM0004:\Ssort the items in this directory by their file types.
+HelpM0005:\Ssort the items in this directory by their size.
+HelpM0006:\Ssort the items in this directory by their date.
+HelpM01G/HelpM03G/HelpM0107/HelpM0107G/HelpM0103G/HelpM0104:\Gthere are no selected objects.
+HelpM011/HelpM012/HelpM013:\Rperform an operation on '%1'.
+HelpM014:\Rperform an operation on the selected objects.
+HelpM0100/HelpM0101/HelpM0102/HelpM0105/HelpM0108/HelpM0109
+HelpM0100G/HelpM0101G/HelpM0102G/HelpM0105G/HelpM0108G/HelpM0109G
+HelpM0400/HelpM0402/HelpM0403/HelpO01/HelpO03/HelpO04:%0
+HelpM01034:\Rcontrol who may access these objects.|MUse the full info display option to see current settings.|M%0
+HelpM0103?:\Rcontrol who may access this object.|MUse the full info display option to see current settings.|M%0
+HelpM010304?:%0
+HelpM0103??1:%0|MThe object's state is shown here by ticks.
+HelpM010304?/HelpM0103???:%0
+HelpM01041:\Sget a box displaying the size of the file '%1'.|MThe info option in this menu will also display this information.
+HelpM01042:\Sget a total of the sizes of all files within '%1'.
+HelpM01043/HelpM01044:\Sget a total of the sizes all files within the current selection.
+HelpM01061/HelpM01062/HelpM01063:\Ropen a box showing full information on '%1'.
+HelpM0106G/HelpM01064:\Gthere isn't exactly one selected object.
+HelpM0107?:\Renter the name of an object you want to find.|MThe selected objects are searched.
+HelpM010700?:Type in the name of an object you want to find.|MClick \s or press Return to start the search.|MThe selected objects are searched.
+HelpM02:\Sselect all objects in the directory display.
+HelpM03:\Sdeselect all objects in the directory display.
+HelpM04:\Rselect the options used for indexing operations.
+HelpM0401:\Sdetermine whether or not a \w shows the progress of operations.
+HelpM05:\Raccess options specific to Index.
+HelpM0501:\Ropen a box showing full information on the current disc
+HelpM0502:\Rsave the icon sprites used in this index.
+HelpM06:\Sopen the parent of this directory.
+HelpM06G:This item is greyed out as this directory does not have a parent.
+HelpS00:\Suse !Sprites files for lo-res colour icon sprites.
+HelpS01:\Suse !Sprites22 files for hi-res colour icon sprites.
+HelpS02:\Suse !Sprites23 files for hi-res mono icon sprites.
+HelpO00:\Sdetermine the speed of operations.
+HelpO02:\Sdetermine whether or not a \w shows the progress of operations.
+
+# This message is used in many menu entries
+
+MenuGrey:\Gfiles cannot be accessed, changed or deleted in Index.
+
+# This message is used if the correct one cannot be found
+
+NoHelp:Error in Index: Help could not be found for token '%0'.
