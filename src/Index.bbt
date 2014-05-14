@@ -3,6 +3,8 @@ REM >!RunImage
 REM Index
 REM Version 1.10
 :
+LIBRARY "BASIC:String"
+:
 debug%=TRUE
 :
 ON ERROR SYS "Hourglass_Smash" : PRINT TAB(0,0) REPORT$+" at line "+STR$(ERL) : END
@@ -538,7 +540,7 @@ DIM file_types% 1024
 :
 quit%=FALSE
 :
-$FNindirection(info_wind%,7)=LEFT$(FNtoken("Version")+" ("+FNtoken("Date")+")",26)
+$FNindirection(info_wind%,7)=LEFT$(FNtoken("Version")+" ("+FNtoken("Date")+")",31)
 :
 i%=FNicon_bar("!index")
 :
@@ -694,7 +696,7 @@ SYS "XOS_FSControl",0,path$ TO ;flag%
 IF (flag% AND 1) THEN PROCreport("NoDisc") : PROCrelease_slot(scan_store%) : scan_store%=-1 : ENDPROC
 SYS "OS_GBPB",5,,b%
 b%!(1+?b%)=13
-$store%=LEFT$($(b%+1),12)
+$store%=LEFT$($(b%+1),11)
 :
 REM Before we can scan, we must set up a sprite area to store any !Sprites files we come across.
 REM This is done at an offset into our index block.  We work out the path we must scan (ie. a
@@ -2765,11 +2767,8 @@ CASE TRUE OF
  WHEN FNicon_selected(opt_panes%(1),13) : index_system$="RAM"
  WHEN FNicon_selected(opt_panes%(1),14) : index_system$="SCSI"
  WHEN FNicon_selected(opt_panes%(1),15) :
-  IF RIGHT$($FNindirection(opt_panes%(1),16))=":" THEN
-   index_system$=LEFT$($FNindirection(opt_panes%(1),16))
-  ELSE
-   index_system$=$FNindirection(opt_panes%(1),16)
-  ENDIF
+  index_system$=FNctrl_string(FNindirection(opt_panes%(1),16))
+  IF RIGHT$(index_system$)=":" THEN index_system$=LEFT$(index_system$)
 ENDCASE
 record_apps%=FNicon_selected(opt_panes%(3),2)
 record_image%=FNicon_selected(opt_panes%(3),3)

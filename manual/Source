@@ -234,7 +234,7 @@ The window contains various settings that affect the way the program operates. I
 <list spacing=1>
 <li><icon>Drive</icon> controls what drive is indexed. Select a system and a drive number from the list, to index that drive. The default is <icon>ADFS::0</icon>. Select <icon>Other</icon> to enter a different filesystem not listed (such as &lsquo;IDEFS:&rsquo;). Simply type the name into the box.
 
-<li><icon>Sprites</icon> defines what sprites <cite>Index</cite> will store in the index files. The options are fairly obvious. <icon>File sprites</icon> toggles the storage of the filetype sprites (such as &lsquo;file_fff&rsquo; for text files, and so on), <icon>Application sprites</icon> toggles the sprites used by applications, and <icon>Small sprites</icon> toggles the storage of the small variants of the above. The <icon>Take file</icon> field determines which Sprites file <cite>Index</cite> will try to load from application directories; click on the menu icon and choose a new file from the list.
+<li><icon>Sprites</icon> defines what sprites <cite>Index</cite> will store in the index files. The options are fairly obvious. <icon>File sprites</icon> toggles the storage of the filetype sprites (such as &lsquo;file_fff&rsquo; for text files, and so on), <icon>Application sprites</icon> toggles the sprites used by applications, and <icon>Small sprites</icon> toggles the storage of the small variants of the above. The <icon>File</icon> field determines which Sprites file <cite>Index</cite> will try to load from application directories; click on the menu icon and choose a new file from the list.
 
 <li><icon>Include</icon> determines which files are actually indexed. <icon>Application contents</icon> decides whether the contents of applications are indexed, and <icon>Image FS contents</icon> does the same for any image filesystems that are encountered. Note that the indexing of image systems is also dependent on the parent application being present (eg. DOSFS, ArcFS, etc).
 
@@ -331,6 +331,8 @@ There are many things that I would like to add to <cite>Index</cite>, and some a
 <li>Use Dynamic Areas to store some of the shifting data on RISC&nbsp;OS&nbsp;3.5 or greater.
 
 <li><key>Adjust</key> clicking on the close icon of a root directory should open the filer window where the index was stored.
+
+<li>Allow indexing of a single directory on a hard disc.
 </list>
 
 <cite>Index</cite> supports the RISC&nbsp;OS&nbsp;3 Territory Manager: this means that if your computer is set up for a country other than the UK you can have all the windows and menus in your own language. Unfortunately, I don&rsquo;t know enough foreign languages to translate the text in Index so currently only UK-English is supported.
@@ -489,6 +491,14 @@ This is a list of the current versions of <cite>Index</cite>.
 
 <list>
 <li>Fixed bug with <code>OS_FSControl&nbsp;55</code> that stopped indexing on RISC&nbsp;OS&nbsp;3.5 or greater.
+</list>
+
+
+<subhead title="1.11  (21 January 2002)">
+
+<list>
+<li>Fixed bug which stopped the <icon>Other</icon> FS option from working.
+<li>Fixed bug with disc names of more than 11 characters (by truncating to 11).
 </list>
 
 </chapter>
