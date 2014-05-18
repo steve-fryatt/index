@@ -3,11 +3,6 @@
 
 TaskName:Index
 
-# Version number and date
-
-Version:1.11 beta
-Date:21 January 2002
-
 # Fatal error...
 
 Error:Index has suffered an internal error (%0 - error code %1). Chose OK to contine, Cancel to exit.

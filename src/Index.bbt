@@ -3,6 +3,11 @@ REM >!RunImage
 REM Index
 REM Version 1.10
 :
+REM These values get replaced by tokenize.
+:
+build_version$ = "1.11"
+build_date$ = "21 Jan 2002"
+:
 LIBRARY "BASIC:String"
 :
 debug%=TRUE
@@ -471,6 +476,9 @@ progress_title%=b%!72
 SYS "Wimp_CreateWindow",,b% TO progress_wind%
 PROCclose_templates
 :
+$FNindirection(info_wind%,6)=CHR$(169) + " Stephen Fryatt, 1995-" + MID$(build_date$, 8)
+$FNindirection(info_wind%,7)=build_version$+" ("+build_date$+")"
+:
 REM Next we initialise the solid dragging routines.  This depends on RiscOs 3.  Then we can set
 REM up an indirection area and load the templates.
 :
@@ -539,8 +547,6 @@ DIM time_b% 8,time_format% 64,time_string% 64
 DIM file_types% 1024
 :
 quit%=FALSE
-:
-$FNindirection(info_wind%,7)=LEFT$(FNtoken("Version")+" ("+FNtoken("Date")+")",31)
 :
 i%=FNicon_bar("!index")
 :
