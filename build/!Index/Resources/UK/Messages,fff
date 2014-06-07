@@ -209,17 +209,18 @@ HelpDVXXX:\Sselect a file, directory or application.|MDouble-click \s to open a 
 #       O            is an optional additional identifier
 
 HelpI00/HelpM0500:\Rsee information about Index.
-HelpI01:\Rclose an index or open the root directory.
-HelpI01G:\Gthere are no indexes currently loaded.
-HelpI0100:\Ropen the root directory of an index.
-HelpI0100??:\Sopen the root directory of the '%1' index.
-HelpI0101:\Rclose an index.
-HelpI0101??:\Sclose the '%1' index.
-HelpI0102:\Sclose all the indexes.
-HelpI02:\Ssearch all the indexes for an object.
-HelpI02G/HelpM0104G?/HelpM0107G?:\Gthere is already one 'filer-action' \w open.
-HelpI03:\Schange the way in which Index operates.
-HelpI04:\Squit Index.
+HelpI01:\Saccess the Index documentation.
+HelpI02:\Rclose an index or open the root directory.
+HelpI02G:\Gthere are no indexes currently loaded.
+HelpI0200:\Ropen the root directory of an index.
+HelpI0200??:\Sopen the root directory of the '%1' index.
+HelpI0201:\Rclose an index.
+HelpI0201??:\Sclose the '%1' index.
+HelpI0202:\Sclose all the indexes.
+HelpI03:\Ssearch all the indexes for an object.
+HelpI03G/HelpM0104G?/HelpM0107G?:\Gthere is already one 'filer-action' \w open.
+HelpI04:\Schange the way in which Index operates.
+HelpI05:\Squit Index.
 HelpM00:\Rcontrol how objects in this directory viewer are displayed.
 HelpM0000:\Sdisplay the objects in this directory using large icons.
 HelpM0001:\Sdisplay the objects in this directory using small icons.

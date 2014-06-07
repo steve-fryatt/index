@@ -79,7 +79,7 @@ CASE w% OF
             :
             REM Scan a disc.  If scan_store% returns with -1, then the scan failed.
             :
-   WHEN 2 : PROCdisplay_bar_menu(ibar_menu%,5,2,x%)
+   WHEN 2 : PROCdisplay_bar_menu(ibar_menu%,6,2,x%)
    WHEN 1 : OSCLI("%Filer_OpenDir "+search_path$)
    ENDCASE
  WHEN opt_wind%
@@ -288,7 +288,7 @@ fix%=FALSE
 CASE menuup% OF
  WHEN ibar_menu%
   CASE s1% OF
-   WHEN 1 : PROCstart_scan : fix%=TRUE
+   WHEN 2 : PROCstart_scan : fix%=TRUE
   ENDCASE
 ENDCASE
 IF fix% THEN
@@ -310,13 +310,14 @@ re_open%=(b%!8=1)
 CASE menuup% OF
  WHEN ibar_menu%
   CASE s1% OF
-   WHEN 1
+   WHEN 1 : OSCLI("%Filer_Run <Index$Dir>.!Help")
+   WHEN 2
     CASE s2% OF
      WHEN 0 : IF s3%>-1 THEN PROCmenu_open_root(s3%)
      WHEN 1 : IF s3%>-1 THEN PROCmenu_kill_index(s3%)
      WHEN 2 : PROCmenu_kill_all
     ENDCASE
-   WHEN 2 : PROCset_icon_state(search_wind%,2,1,0,0)
+   WHEN 3 : PROCset_icon_state(search_wind%,2,1,0,0)
             PROCset_icon_state(search_wind%,3,0,0,0)
             PROCset_icon_state(search_wind%,4,0,0,0)
             PROCset_icon_state(search_wind%,6,search_for_dirs%,0,0)
@@ -327,8 +328,8 @@ CASE menuup% OF
             $FNindirection(search_wind%,3)=""
             PROCopen(search_wind%)
             PROCend_caret(search_wind%,1)
-   WHEN 3 : PROCopen_opts
-   WHEN 4 : quit%=TRUE : abort_action%=TRUE : pause_action%=FALSE
+   WHEN 4 : PROCopen_opts
+   WHEN 5 : quit%=TRUE : abort_action%=TRUE : pause_action%=FALSE
    ENDCASE
  WHEN main_menu%
   CASE s1% OF
@@ -2256,7 +2257,7 @@ REM and match.  It will be converted to lower case by the code.
 :
 :
 DEF PROCgrey_search_opts(g%)
-PROCset_menu_state(ibar_menu%,2,0,g%)
+PROCset_menu_state(ibar_menu%,3,0,g%)
 PROCset_menu_state(file_menu%,4,0,g%)
 PROCset_menu_state(file_menu%,7,0,g%)
 PROCset_icon_state(search_wind%,11,0,g%,0)
@@ -2528,7 +2529,7 @@ NEXT loop%
 IF width%>10 THEN width%=10
 PROCset_menu_width(flst_menu%,width%)
 IF count%>0 THEN PROCset_menu_last(flst_menu%,count%-1,1)
-PROCset_menu_state(ibar_menu%,1,0,(count%=0))
+PROCset_menu_state(ibar_menu%,2,0,(count%=0))
 :
 IF count%>1 THEN
  FOR pass%=0 TO count%-2

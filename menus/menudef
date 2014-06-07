@@ -166,8 +166,10 @@ menu(disc_index_menu, "Disc index") {
 
 menu(icon_bar_menu, "Index") {
 	item("Info") {
-		dotted;
 		d_box(program_info);
+	}
+	item("Help") {
+		dotted;
 	}
 	item("Indexes") {
 		submenu(indexes_menu);
