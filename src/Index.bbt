@@ -27,6 +27,7 @@ REM These values get replaced by tokenize.
 build_version$ = "1.11"
 build_date$ = "21 Jan 2002"
 :
+LIBRARY "BASIC:Resources"
 LIBRARY "BASIC:String"
 :
 debug%=TRUE
@@ -425,7 +426,7 @@ SYS "Hourglass_On"
 :
 DIM a% 256, b% 3000, q% 256
 :
-resource_path$=FNterritory_resources("<Index$Dir>.Resources")
+resource_path$=FNresources_find_territory_folder("<Index$Dir>.Resources")
 :
 DIM message_block% 16
 SYS "MessageTrans_FileInfo",,resource_path$+"Messages" TO flags%,,message_size%
@@ -3534,19 +3535,6 @@ DEF FNtoken(m$)
 LOCAL e$
 IF m$<>"" THEN SYS "MessageTrans_Lookup",message_block%,m$ TO ,,e$ ELSE e$=m$
 =e$
-:
-DEF FNterritory_name
-LOCAL t%
-SYS "Territory_Number" TO t%
-SYS "Territory_NumberToName",t%,q%,256
-=FNstring(q%)
-:
-DEF FNterritory_resources(p$)
-LOCAL f$,t%
-f$=p$+"."+FNterritory_name
-SYS "XOS_File",5,f$ TO t%
-IF t%<2 OR t%>3 THEN f$=p$+".UK"
-=f$+"."
 :
 DEF PROCerror
 SYS "Hourglass_Smash"

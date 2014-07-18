@@ -67,7 +67,7 @@ Index - Comprehensive Disc Indexer                               Version $$versi
 <literal mode="HTML">
 <html>
 <head>
-<title>Float</title>
+<title>Index</title>
 </head>
 
 <body>
@@ -499,6 +499,13 @@ This is a list of the current versions of <cite>Index</cite>.
 <list>
 <li>Fixed bug which stopped the <icon>Other</icon> FS option from working.
 <li>Fixed bug with disc names of more than 11 characters (by truncating to 11).
+</list>
+
+
+<subhead title="Test Build">
+
+<list>
+<li>Restructured for building with Tokenize.
 </list>
 
 </chapter>
