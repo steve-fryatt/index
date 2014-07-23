@@ -2794,7 +2794,7 @@ CASE TRUE OF
  WHEN FNicon_selected(opt_panes%(1),13) : index_system$="RAM"
  WHEN FNicon_selected(opt_panes%(1),14) : index_system$="SCSI"
  WHEN FNicon_selected(opt_panes%(1),15) :
-  index_system$=FNctrl_string(FNindirection(opt_panes%(1),16))
+  SYS "XOS_GenetateError", FNindirection(opt_panes%(1),16) TO index_system$
   IF RIGHT$(index_system$)=":" THEN index_system$=LEFT$(index_system$)
 ENDCASE
 record_apps%=FNicon_selected(opt_panes%(3),2)
