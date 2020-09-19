@@ -422,16 +422,23 @@ ENDPROC
 : REM ------------------------------------------------------------------------------------------
 :
 DEF PROCstart_up
+LOCAL resources$
+
 SYS "Hourglass_On"
 :
 DIM a% 256, b% 3000, q% 256
 :
-resource_path$=FNresources_find_territory_folder("<Index$Dir>.Resources")
+REM Locate the application resources.
+PROCresources_initialise_paths("<Index$Dir>.Resources", "UK", "Index$Language")
+:
+REM Load the messages file.
+resources$ = FNresources_find_file("Messages", &FFF)
+IF resources$ = "" THEN ERROR 255, "Unable to find Messages file"
 :
 DIM message_block% 16
-SYS "MessageTrans_FileInfo",,resource_path$+"Messages" TO flags%,,message_size%
+SYS "MessageTrans_FileInfo",,resources$ TO flags%,,message_size%
 IF (flags% AND 1) THEN message_buffer%=0 ELSE DIM message_buffer% message_size%
-SYS "MessageTrans_OpenFile",message_block%,resource_path$+"Messages",message_buffer%
+SYS "MessageTrans_OpenFile",message_block%,resources$,message_buffer%
 :
 task_name$=FNtoken("TaskName")
 :
@@ -460,11 +467,15 @@ REM First turn the hourglass on, then set up any parameter blocks, and call Wimp
 :
 PROCdrag_init
 :
+REM Load the window templates.
+resources$ = FNresources_find_file("Templates", &FEC)
+IF resources$ = "" THEN ERROR 255, "Unable to find Templates file"
+:
 ind_size%=&FFF
 DIM indir% ind_size%, view_temp% 255
 DIM opt_panes%(6)
 :
-PROCopen_templates(resource_path$+"Templates")
+PROCopen_templates(resources$)
 to%=FNload_template("Info",b%,indir%,ind_size%)
 SYS "Wimp_CreateWindow",,b% TO info_wind%
 to%=FNload_template("Viewer",view_temp%,to%,ind_size%-(to%-indir%))
@@ -571,6 +582,10 @@ quit%=FALSE
 :
 i%=FNicon_bar("!index")
 :
+REM Initialise and load the menu templates.
+resources$ = FNresources_find_file("Menus", &FFD)
+IF resources$ = "" THEN ERROR 255, "Unable to find Menus file"
+:
 !b%=info_wind%
 b%!4=info_wind%
 b%!8=obj_info%
@@ -581,7 +596,7 @@ b%!24=disc_info%
 b%!28=savesp_wind%
 b%!32=info_wind%
 :
-PROCload_menu_block(resource_path$+"Menus",b%)
+PROCload_menu_block(resources$, b%)
 :
 main_menu%=!b%
 disp_menu%=b%!4
