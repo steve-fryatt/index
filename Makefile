@@ -36,9 +36,8 @@ HELP_DATE := $(shell date "+%-d %B %Y")
 # Construct version or revision information.
 
 ifeq ($(VERSION),)
-  RELEASE := $(shell svnversion --no-newline)
-  VERSION := r$(RELEASE)
-  RELEASE := $(subst :,-,$(RELEASE))
+  RELEASE := $(shell git describe --always)
+  VERSION := $(RELEASE)
   HELP_VERSION := ----
 else
   RELEASE := $(subst .,,$(VERSION))
@@ -82,7 +81,7 @@ ZIPFLAGS := -x "*/.svn/*" -r -, -9
 SRCZIPFLAGS := -x "*/.svn/*" -r -9
 BUZIPFLAGS := -x "*/.svn/*" -r -9
 BINDHELPFLAGS := -f -r -v
-TOKFLAGS := -verbose -crunch EIrW -warn p -swi -swis $(GCCSDK_INSTALL_CROSSBIN)/../arm-unknown-riscos/include/swis.h -swis $(GCCSDK_INSTALL_ENV)/include/TokSWIs.h
+TOKFLAGS := -verbose -crunch EIrW -warn p -swi -swis $(GCCSDK_INSTALL_CROSSBIN)/../arm-unknown-riscos/include/swis.h -swis $(GCCSDK_INSTALL_ENV)/include/TokenizeSWIs.h
 
 
 # Set up the various build directories.
@@ -105,7 +104,7 @@ README := ReadMe,fff
 FINDHELP := !Help,ffb
 TEXTHELP := HelpText,fff
 SHHELP := Index,3d6
-LICENSE := Licence,fff
+LICENCE := Licence,fff
 GUESSFORM := GuessForm,ffb
 
 
@@ -116,6 +115,7 @@ MANSPR := ManSprite
 READMEHDR := Header
 MENUSRC := menudef
 FINDHELPSRC := Help.bbt
+LICSRC := Licence
 
 SRCS := Index.bbt
 
@@ -169,7 +169,7 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
 
 # Build the documentation
 
-documentation: $(OUTDIR)/$(APP)/$(FINDHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README)
+documentation: $(OUTDIR)/$(APP)/$(FINDHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP) $(OUTDIR)/$(README) $(OUTDIR)/$(LICENCE)
 
 $(OUTDIR)/$(APP)/$(FINDHELP): $(MANUAL)/$(FINDHELPSRC)
 	$(TOKENIZE) $(TOKFLAGS) $(MANUAL)/$(FINDHELPSRC) -out $(OUTDIR)/$(APP)/$(FINDHELP)
@@ -186,11 +186,15 @@ $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP): $(MANUAL)/$(MANSRC) $(MANUAL)/$(MANSPR)
 $(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
+$(OUTDIR)/$(LICENCE): $(LICSRC)
+	@$(call show-stage,LICENCE,$(OUTDIR)/$(LICENCE))
+	@$(CP) $(LICSRC) $(OUTDIR)/$(LICENCE)
+
 # Build the release Zip file.
 
 release: clean all
 	$(RM) ../$(ZIPFILE)
-	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP) $(README) $(LICENSE))
+	(cd $(OUTDIR) ; $(ZIP) $(ZIPFLAGS) ../../$(ZIPFILE) $(APP) $(README) $(LICENCE))
 	$(RM) ../$(SRCZIPFILE)
 	$(ZIP) $(SRCZIPFLAGS) ../$(SRCZIPFILE) $(OUTDIR) $(SRCDIR) $(MANUAL) Makefile
 
@@ -211,5 +215,6 @@ clean:
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(SHHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
+	$(RM) $(OUTDIR)/$(LICENCE)
 	$(RM) $(OUTDIR)/$(GUESSFORM)
 
