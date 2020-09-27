@@ -41,7 +41,7 @@ If you have any comments about {f/:Index}, or would like to report any bugs that
 Updates to {f/:Index} and more programs for RISC OS computers can be found on my website at <http://www.stevefryatt.org.uk/software/=>#url>.
 
 #Align Centre
-© Stephen Fryatt, 1997-2014 (<steve@stevefryatt.org.uk=>#url mailto:steve@stevefryatt.org.uk>)
+© Stephen Fryatt, 1997-2014 (<info@stevefryatt.org.uk=>#url mailto:info@stevefryatt.org.uk>)
 
 A plain text version of this manual is available <here=>*Filer_Run <Index$HelpText\>>.
 #Align Left
@@ -528,7 +528,7 @@ Updates and Contacting Me
   my website at http://www.stevefryatt.org.uk/software/
 
   Stephen Fryatt
-  email: steve@stevefryatt.org.uk
+  email: info@stevefryatt.org.uk
 </literal>
 
 
@@ -617,7 +617,7 @@ fStd
 
 <p>Updates to <cite>Index</cite> and more programs for RISC&nbsp;OS computers can be found on my website at <a href="http://www.stevefryatt.org.uk/software/">http://www.stevefryatt.org.uk/software/</a></p>
 
-<p>Stephen Fryatt (email: <a href="mailto:steve@stevefryatt.org.uk">steve@stevefryatt.org.uk</a>)</p>
+<p>Stephen Fryatt (email: <a href="mailto:info@stevefryatt.org.uk">info@stevefryatt.org.uk</a>)</p>
 </body>
 </html>
 </literal>
