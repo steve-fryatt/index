@@ -159,7 +159,7 @@ $(OBJDIR):
 
 # Build the object files, and identify their dependencies.
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.s
+$(OBJDIR)/%.o: $(SRCDIR)/%.s $(OBJDIR)
 	$(AS) $(ASFLAGS) -PreDefine 'Include SETS "$(GCCSDK_INSTALL_ENV)/include"' -o $@ $<
 
 # Build the menus file.
